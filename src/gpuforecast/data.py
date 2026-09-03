@@ -81,8 +81,11 @@ def build_dataloaders(cfg: dict, *, pin_memory: bool | None = None) -> DataBundl
     dcfg = cfg["data"]
     raw, _ = load_numeric_csv(dcfg["path"])
     n = len(raw)
-    train_end = int(n * dcfg["train_ratio"])
-    val_end = int(n * (dcfg["train_ratio"] + dcfg["val_ratio"]))
+    train_size = int(n * dcfg["train_ratio"])
+    val_size = int(n * dcfg["val_ratio"])
+
+    train_end = train_size
+    val_end = train_end + val_size
 
     scaler = StandardScaler().fit(raw[:train_end])
     values = scaler.transform(raw)
