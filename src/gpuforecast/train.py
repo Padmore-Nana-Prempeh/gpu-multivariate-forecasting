@@ -40,7 +40,7 @@ def move_batch(x, y, device: torch.device):
     return x.to(device, non_blocking=non_blocking), y.to(device, non_blocking=non_blocking)
 
 
-def train_epoch(model, loader, optimizer, scaler, loss_fn, device, amp, prefetch_stream):
+def train_epoch(model, loader, optimizer, scaler, loss_fn, device, amp, prefetch_stream, grad_clip,):
     model.train()
     total_loss = 0.0
     total_items = 0
@@ -62,7 +62,7 @@ def train_epoch(model, loader, optimizer, scaler, loss_fn, device, amp, prefetch
                 loss = loss_fn(pred, y)
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
             scaler.step(optimizer)
             scaler.update()
         else:
@@ -141,6 +141,8 @@ def main() -> None:
 
     history = []
     best_rmse = float("inf")
+    best_epoch = -1
+
     out_dir = Path(cfg["output"]["dir"])
     out_dir.mkdir(parents=True, exist_ok=True)
     run_name = (
@@ -148,6 +150,8 @@ def main() -> None:
         f"_pin{int(bundle.train.pin_memory)}_prefetch{int(cfg['train']['prefetch_stream'])}"
         f"_compile{int(cfg['train'].get('compile', False))}"
     )
+    best_path = out_dir / f"{run_name}_best.pt"
+
 
     for epoch in range(1, int(cfg["train"]["epochs"]) + 1):
         tr = train_epoch(
@@ -159,6 +163,7 @@ def main() -> None:
             device,
             bool(cfg["train"]["amp"]),
             bool(cfg["train"]["prefetch_stream"]),
+            float(cfg["train"]["grad_clip"]),
         )
         val = evaluate(model, bundle.val, bundle.scaler, device)
         row = {"epoch": epoch, **{f"train_{k}": v for k, v in tr.items()}, **{f"val_{k}": v for k, v in val.items()}}
@@ -166,15 +171,20 @@ def main() -> None:
         print(json.dumps(row))
         if val["rmse"] < best_rmse:
             best_rmse = val["rmse"]
-            torch.save({"model": model.state_dict(), "cfg": cfg}, out_dir / f"{run_name}_best.pt")
+            best_epoch = epoch
+            torch.save({"model": model.state_dict(), "cfg": cfg, "epoch": epoch, "val_rmse": val["rmse"],}, best_path,)
 
-    test = evaluate(model, bundle.test, bundle.scaler, device)
+
+    checkpoint = torch.load(best_path, map_location=device, weights_only=False)
+    model.load_state_dict(checkpoint["model"])
+    test = evaluate(model, bundle.test, bundle.scaler, device,)
     summary = {
         "run": run_name,
         "device": str(device),
         "torch_version": torch.__version__,
         "cuda_version": torch.version.cuda,
         "best_val_rmse": best_rmse,
+        "best_epoch": best_epoch,
         "test": test,
         "history": history,
     }

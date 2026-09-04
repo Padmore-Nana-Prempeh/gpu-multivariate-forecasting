@@ -1,0 +1,32 @@
+seed: 42
+
+data:
+  path: data/ETTm1.csv
+  seq_len: 96
+  horizon: 24
+  train_ratio: 0.70
+  val_ratio: 0.10
+  batch_size: 256
+  num_workers: 0
+  pin_memory: false
+
+model:
+  name: lstm
+  hidden_size: 128
+  num_layers: 2
+  dropout: 0.10
+  nhead: 4
+  tcn_channels: [64, 128, 128]
+
+train:
+  epochs: 1
+  lr: 0.001
+  weight_decay: 0.0001
+  grad_clip: 1.0
+  amp: false
+  prefetch_stream: false
+  compile: false
+  device: auto
+
+output:
+  dir: results
