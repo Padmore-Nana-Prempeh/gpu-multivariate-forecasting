@@ -1,4 +1,4 @@
-[build-system]
+"torch>=2.8,<3","torch>=2.8,<3",[build-system]
 requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
@@ -12,7 +12,7 @@ dependencies = [
   "pandas>=2.2",
   "PyYAML>=6.0",
   "tqdm>=4.66",
-  "torch>=2.13",
+  "torch>=2.8,<3",
 ]
 
 [project.optional-dependencies]
