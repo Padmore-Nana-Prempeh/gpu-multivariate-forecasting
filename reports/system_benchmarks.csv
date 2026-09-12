@@ -1,0 +1,2 @@
+config,model,seed,gpu,torch_version,cuda_version,batch_size,warmup_epochs,measured_epochs,best_epoch,best_val_rmse,test_rmse,test_mae,epoch_seconds_mean,samples_per_sec_mean,peak_allocated_mb,peak_reserved_mb,git_sha,dataset_sha256
+c0_fp32,transformer,42,NVIDIA A40,2.8.0+cu128,12.8,256,1,19,4,2.0705508688688936,2.424142182419826,1.31013023853302,3.712429047513165,13139.781310602817,576.90087890625,670.0,9387589eb56c82bab42bb85123fe7c18ea24dd8a,6ce1759b1a18e3328421d5b75fadcb316c449fcd7cec32820c8dafda71986c9e
