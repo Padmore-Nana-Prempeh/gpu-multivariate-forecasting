@@ -18,3 +18,5 @@ results/*
 data/*
 !data/.gitkeep
 .DS_store
+# Local GPU benchmark artifacts
+local_gpu_artifacts/
