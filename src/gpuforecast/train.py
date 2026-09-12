@@ -83,9 +83,15 @@ def write_json(
         json.dump(payload, f, indent=2)
 
 
-def move_batch(x, y, device: torch.device):
-    non_blocking = device.type == "cuda"
-    return x.to(device, non_blocking=non_blocking), y.to(device, non_blocking=non_blocking)
+def move_batch(
+    x: torch.Tensor,
+    y: torch.Tensor,
+    device: torch.device,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    return (
+        x.to(device),
+        y.to(device),
+    )
 
 
 def train_epoch(model, loader, optimizer, scaler, loss_fn, device, amp, prefetch_stream, grad_clip,):
@@ -126,14 +132,25 @@ def train_epoch(model, loader, optimizer, scaler, loss_fn, device, amp, prefetch
     if device.type == "cuda":
         torch.cuda.synchronize()
     elapsed = time.perf_counter() - start
-    peak_mb = (
-        torch.cuda.max_memory_allocated(device) / (1024**2) if device.type == "cuda" else float("nan")
-    )
+    if device.type == "cuda":
+        peak_allocated_mb = (
+            torch.cuda.max_memory_allocated(device)
+            / (1024**2)
+        )
+
+        peak_reserved_mb = (
+            torch.cuda.max_memory_reserved(device)
+            / (1024**2)
+        )
+    else:
+        peak_allocated_mb = float("nan")
+        peak_reserved_mb = float("nan")
     return {
         "loss": total_loss / max(total_items, 1),
         "seconds": elapsed,
         "samples_per_sec": total_items / elapsed,
-        "peak_memory_mb": peak_mb,
+        "peak_allocated_memory_mb": peak_allocated_mb,
+        "peak_reserved_memory_mb": peak_reserved_mb,
     }
 
 
