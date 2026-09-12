@@ -2,9 +2,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import platform
 import random
+import subprocess
+import sys
 import time
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import torch
@@ -33,6 +37,50 @@ def choose_device(requested: str) -> torch.device:
     if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
         return torch.device("mps")
     return torch.device("cpu")
+
+def get_git_sha() -> str | None:
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
+def collect_environment(device: torch.device) -> dict[str, Any]:
+    gpu_name = None
+
+    if device.type == "cuda":
+        gpu_name = torch.cuda.get_device_name(device)
+
+    return {
+        "python_version": sys.version.split()[0],
+        "platform": platform.platform(),
+        "machine": platform.machine(),
+        "torch_version": str(torch.__version__),
+        "cuda_version": torch.version.cuda,
+        "device": str(device),
+        "gpu_name": gpu_name,
+        "git_sha": get_git_sha(),
+    }
+
+
+def count_parameters(model: nn.Module) -> int:
+    return sum(
+        p.numel()
+        for p in model.parameters()
+        if p.requires_grad
+    )
+
+
+def write_json(
+    path: Path,
+    payload: dict[str, Any],
+) -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2)
 
 
 def move_batch(x, y, device: torch.device):
@@ -69,7 +117,7 @@ def train_epoch(model, loader, optimizer, scaler, loss_fn, device, amp, prefetch
             pred = model(x)
             loss = loss_fn(pred, y)
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip,)
             optimizer.step()
 
         total_loss += float(loss.detach()) * x.size(0)
@@ -119,78 +167,225 @@ def main() -> None:
         cfg["seed"] = args.seed
     if args.amp:
         cfg["train"]["amp"] = args.amp == "on"
+    if args.pin_memory:
+        cfg["data"]["pin_memory"] = args.pin_memory == "on"
     if args.prefetch_stream:
         cfg["train"]["prefetch_stream"] = args.prefetch_stream == "on"
     if args.compile:
         cfg["train"]["compile"] = args.compile == "on"
-    pin_memory = None if args.pin_memory is None else args.pin_memory == "on"
+    
 
     seed_everything(int(cfg["seed"]))
-    device = choose_device(cfg["train"].get("device", "auto"))
-    bundle = build_dataloaders(cfg, pin_memory=pin_memory)
-    model = build_model(cfg, bundle.n_features).to(device)
+    
+    device = choose_device(
+        cfg["train"].get("device", "auto")
+    )
 
-    if cfg["train"].get("compile", False) and hasattr(torch, "compile"):
+    bundle = build_dataloaders(
+        cfg,
+        pin_memory=bool(cfg["data"]["pin_memory"]),
+    )
+
+    model = build_model(
+        cfg,
+        bundle.n_features,
+    ).to(device)
+
+    parameter_count = count_parameters(model)
+
+    if (
+        cfg["train"].get("compile", False)
+        and hasattr(torch, "compile")
+    ):
         model = torch.compile(model)
 
     optimizer = torch.optim.AdamW(
-        model.parameters(), lr=float(cfg["train"]["lr"]), weight_decay=float(cfg["train"]["weight_decay"])
+        model.parameters(),
+        lr=float(cfg["train"]["lr"]),
+        weight_decay=float(
+            cfg["train"]["weight_decay"]
+        ),
     )
+
     loss_fn = nn.MSELoss()
-    scaler = torch.amp.GradScaler("cuda", enabled=(device.type == "cuda" and cfg["train"]["amp"]))
+
+    scaler = torch.amp.GradScaler(
+        "cuda",
+        enabled=(
+            device.type == "cuda"
+            and cfg["train"]["amp"]
+        ),
+    )
 
     history = []
     best_rmse = float("inf")
     best_epoch = -1
 
-    out_dir = Path(cfg["output"]["dir"])
-    out_dir.mkdir(parents=True, exist_ok=True)
     run_name = (
-        f"{cfg['model']['name']}_seed{cfg['seed']}_amp{int(cfg['train']['amp'])}"
-        f"_pin{int(bundle.train.pin_memory)}_prefetch{int(cfg['train']['prefetch_stream'])}"
+        f"{cfg['model']['name']}"
+        f"_seed{cfg['seed']}"
+        f"_amp{int(cfg['train']['amp'])}"
+        f"_pin{int(cfg['data']['pin_memory'])}"
+        f"_prefetch{int(cfg['train']['prefetch_stream'])}"
         f"_compile{int(cfg['train'].get('compile', False))}"
     )
-    best_path = out_dir / f"{run_name}_best.pt"
+
+    root_dir = Path(cfg["output"]["dir"])
+    run_dir = root_dir / run_name
+
+    run_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    best_path = run_dir / "best.pt"
+    config_path = run_dir / "config.json"
+    environment_path = run_dir / "environment.json"
+    status_path = run_dir / "status.json"
+    result_path = run_dir / "result.json"
+
+    environment = collect_environment(device)
+
+    write_json(
+        config_path,
+        cfg,
+    )
+
+    write_json(
+        environment_path,
+        environment,
+    )
+
+    write_json(
+        status_path,
+        {
+            "run": run_name,
+            "status": "running",
+        },
+    )
 
 
-    for epoch in range(1, int(cfg["train"]["epochs"]) + 1):
-        tr = train_epoch(
-            model,
-            bundle.train,
-            optimizer,
-            scaler,
-            loss_fn,
-            device,
-            bool(cfg["train"]["amp"]),
-            bool(cfg["train"]["prefetch_stream"]),
-            float(cfg["train"]["grad_clip"]),
+    try:
+        for epoch in range(1, int(cfg["train"]["epochs"]) + 1):
+            tr = train_epoch(
+                model,
+                bundle.train,
+                optimizer,
+                scaler,
+                loss_fn,
+                device,
+                bool(cfg["train"]["amp"]),
+                bool(cfg["train"]["prefetch_stream"]),
+                float(cfg["train"]["grad_clip"]),
+            )
+
+            val = evaluate(
+                model,
+                bundle.val,
+                bundle.scaler,
+                device,
+            )
+
+            row = {
+                "epoch": epoch,
+                **{
+                    f"train_{k}": v
+                    for k, v in tr.items()
+                },
+                **{
+                    f"val_{k}": v
+                    for k, v in val.items()
+                },
+            }
+
+            history.append(row)
+            print(json.dumps(row))
+
+            if val["rmse"] < best_rmse:
+                best_rmse = val["rmse"]
+                best_epoch = epoch
+
+                torch.save(
+                    {
+                        "model": model.state_dict(),
+                        "cfg": cfg,
+                        "epoch": epoch,
+                        "val_rmse": val["rmse"],
+                        "run": run_name,
+                        "environment": environment,
+                    },
+                    best_path,
+                )
+
+        checkpoint = torch.load(
+            best_path,
+            map_location=device,
+            weights_only=False,
         )
-        val = evaluate(model, bundle.val, bundle.scaler, device)
-        row = {"epoch": epoch, **{f"train_{k}": v for k, v in tr.items()}, **{f"val_{k}": v for k, v in val.items()}}
-        history.append(row)
-        print(json.dumps(row))
-        if val["rmse"] < best_rmse:
-            best_rmse = val["rmse"]
-            best_epoch = epoch
-            torch.save({"model": model.state_dict(), "cfg": cfg, "epoch": epoch, "val_rmse": val["rmse"],}, best_path,)
 
+        model.load_state_dict(
+            checkpoint["model"]
+        )
 
-    checkpoint = torch.load(best_path, map_location=device, weights_only=False)
-    model.load_state_dict(checkpoint["model"])
-    test = evaluate(model, bundle.test, bundle.scaler, device,)
-    summary = {
-        "run": run_name,
-        "device": str(device),
-        "torch_version": torch.__version__,
-        "cuda_version": torch.version.cuda,
-        "best_val_rmse": best_rmse,
-        "best_epoch": best_epoch,
-        "test": test,
-        "history": history,
-    }
-    with open(out_dir / f"{run_name}.json", "w", encoding="utf-8") as f:
-        json.dump(summary, f, indent=2)
-    print(json.dumps({"final": summary["run"], "test": test}, indent=2))
+        test = evaluate(
+            model,
+            bundle.test,
+            bundle.scaler,
+            device,
+        )
+
+        summary = {
+            "run": run_name,
+            "status": "completed",
+            "config_source": args.config,
+            "config": cfg,
+            "environment": environment,
+            "parameters": parameter_count,
+            "checkpoint": str(best_path),
+            "best_val_rmse": best_rmse,
+            "best_epoch": best_epoch,
+            "test": test,
+            "history": history,
+        }
+
+        write_json(
+            result_path,
+            summary,
+        )
+
+        write_json(
+            status_path,
+            {
+                "run": run_name,
+                "status": "completed",
+                "best_epoch": best_epoch,
+                "best_val_rmse": best_rmse,
+            },
+        )
+
+        print(
+            json.dumps(
+                {
+                    "final": summary["run"],
+                    "test": test,
+                },
+                indent=2,
+            )
+        )
+
+    except BaseException as exc:
+        write_json(
+            status_path,
+            {
+                "run": run_name,
+                "status": "failed",
+                "error_type": type(exc).__name__,
+                "error": str(exc),
+                "completed_epochs": len(history),
+            },
+        )
+
+        raise
 
 
 if __name__ == "__main__":
