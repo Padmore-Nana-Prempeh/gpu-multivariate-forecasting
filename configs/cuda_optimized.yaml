@@ -7,7 +7,7 @@ data:
   val_ratio: 0.1
   batch_size: 256
   num_workers: 0
-  pin_memory: false
+  pin_memory: true
 model:
   name: transformer
   hidden_size: 92
@@ -25,10 +25,10 @@ train:
   lr: 0.001
   weight_decay: 0.0001
   grad_clip: 1.0
-  amp: false
-  prefetch_stream: false
-  compile: false
+  amp: true
+  prefetch_stream: true
+  compile: true
   device: cuda
-  non_blocking_h2d: false
+  non_blocking_h2d: true
 output:
-  dir: results/cuda_fp32
+  dir: results/cuda_optimized

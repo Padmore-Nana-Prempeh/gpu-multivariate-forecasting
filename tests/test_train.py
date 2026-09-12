@@ -111,6 +111,7 @@ def test_train_epoch_uses_configured_grad_clip(
         device=torch.device("cpu"),
         amp=False,
         prefetch_stream=False,
+        non_blocking_h2d=False,
         grad_clip=0.25,
     )
 

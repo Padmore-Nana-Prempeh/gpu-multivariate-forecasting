@@ -87,16 +87,28 @@ def move_batch(
     x: torch.Tensor,
     y: torch.Tensor,
     device: torch.device,
+    non_blocking: bool = False,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     return (
-        x.to(device),
-        y.to(device),
+        x.to(device, non_blocking=non_blocking),
+        y.to(device, non_blocking=non_blocking),
     )
 
 
-def train_epoch(model, loader, optimizer, scaler, loss_fn, device, amp, prefetch_stream, grad_clip,):
+def train_epoch(
+    model,
+    loader,
+    optimizer,
+    scaler,
+    loss_fn,
+    device,
+    amp,
+    prefetch_stream,
+    non_blocking_h2d,
+    grad_clip,
+):
     model.train()
-    total_loss = 0.0
+    total_loss = torch.zeros((), device=device, dtype=torch.float32)
     total_items = 0
 
     if device.type == "cuda":
@@ -107,7 +119,12 @@ def train_epoch(model, loader, optimizer, scaler, loss_fn, device, amp, prefetch
     iterable = CUDAPrefetcher(loader, device) if (device.type == "cuda" and prefetch_stream) else loader
     for x, y in iterable:
         if not (device.type == "cuda" and prefetch_stream):
-            x, y = move_batch(x, y, device)
+            x, y = move_batch(
+                x,
+                y,
+                device,
+                non_blocking=non_blocking_h2d,
+            )
         optimizer.zero_grad(set_to_none=True)
 
         if amp and device.type == "cuda":
@@ -126,7 +143,7 @@ def train_epoch(model, loader, optimizer, scaler, loss_fn, device, amp, prefetch
             torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip,)
             optimizer.step()
 
-        total_loss += float(loss.detach()) * x.size(0)
+        total_loss += loss.detach().float() * x.size(0)
         total_items += x.size(0)
 
     if device.type == "cuda":
@@ -146,7 +163,7 @@ def train_epoch(model, loader, optimizer, scaler, loss_fn, device, amp, prefetch
         peak_allocated_mb = float("nan")
         peak_reserved_mb = float("nan")
     return {
-        "loss": total_loss / max(total_items, 1),
+        "loss": (total_loss / max(total_items, 1)).item(),
         "seconds": elapsed,
         "samples_per_sec": total_items / elapsed,
         "peak_allocated_memory_mb": peak_allocated_mb,
@@ -293,6 +310,7 @@ def main() -> None:
                 device,
                 bool(cfg["train"]["amp"]),
                 bool(cfg["train"]["prefetch_stream"]),
+                bool(cfg["train"].get("non_blocking_h2d", False)),
                 float(cfg["train"]["grad_clip"]),
             )
 
