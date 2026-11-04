@@ -25,22 +25,22 @@ Phase 16 advances the GPU-Accelerated Multivariate Forecasting project from simp
 
 Phase 15 introduced a CUDA extension implementing:
 
-\[
+$$
 y_i = 2x_i
-\]
+$$
 
 That operation is elementwise and does not require communication between CUDA threads.
 
 Phase 16 introduces a substantially more complex operation:
 
-\[
+$$
 \boxed{
 Y = \operatorname{GELU}_{\tanh}
 \left(
 \operatorname{LayerNorm}(X)
 \right)
 }
-\]
+$$
 
 The fused operator combines:
 
@@ -81,41 +81,41 @@ The saved A40 benchmark records small maximum absolute differences relative to t
 
 Across four FP32 input shapes, maximum absolute errors ranged from approximately:
 
-\[
+$$
 9.54\times10^{-7}
-\]
+$$
 
 to:
 
-\[
+$$
 1.91\times10^{-6}
-\]
+$$
 
 The archived forward-operation benchmark also recorded speedups between approximately:
 
-\[
+$$
 1.25\times
-\]
+$$
 
 and:
 
-\[
+$$
 3.39\times
-\]
+$$
 
 These are standalone operator-level results, not full Transformer-training speedups.
 
 The most representative tested activation shape for the project's Transformer is:
 
-\[
+$$
 [24576,92]
-\]
+$$
 
 For that shape, the archived benchmark recorded approximately:
 
-\[
+$$
 \boxed{1.25\times\text{ operator speedup}}
-\]
+$$
 
 The principal outcome of Phase 16 is a recovered, source-verified, technically documented CUDA implementation whose numerical behavior and synchronization strategy can be explained and reproduced.
 
@@ -329,49 +329,49 @@ Consequently, the custom extension is evaluated as an independent forward microb
 
 Consider one input row:
 
-\[
+$$
 x_r=[x_{r1},x_{r2},\ldots,x_{rD}]
-\]
+$$
 
-where \(D\) is the hidden dimension.
+where $D$ is the hidden dimension.
 
 LayerNorm first computes the mean:
 
-\[
+$$
 \mu_r=
 \frac{1}{D}
 \sum_{j=1}^{D}x_{rj}
-\]
+$$
 
 Next, it computes the population variance:
 
-\[
+$$
 \sigma_r^2=
 \frac{1}{D}
 \sum_{j=1}^{D}(x_{rj}-\mu_r)^2
-\]
+$$
 
 The normalized activation is:
 
-\[
+$$
 \hat{x}_{rj}=
 \frac{x_{rj}-\mu_r}
 {\sqrt{\sigma_r^2+\epsilon}}
-\]
+$$
 
-Here, \(\epsilon\) is a small positive constant for numerical stability.
+Here, $\epsilon$ is a small positive constant for numerical stability.
 
 The learned affine transformation is:
 
-\[
+$$
 z_{rj}=
 \gamma_j\hat{x}_{rj}+\beta_j
-\]
+$$
 
 where:
 
-- \(\gamma_j\) is a learned scale parameter.
-- \(\beta_j\) is a learned bias parameter.
+- $\gamma_j$ is a learned scale parameter.
+- $\beta_j$ is a learned bias parameter.
 
 The normalization statistics are computed independently for each row.
 
@@ -383,45 +383,45 @@ The affine parameters are shared across rows at the same feature positions.
 
 Consider:
 
-\[
+$$
 x=[2,4,6,8]
-\]
+$$
 
 The mean is:
 
-\[
+$$
 \mu=\frac{2+4+6+8}{4}=5
-\]
+$$
 
 The deviations are:
 
-\[
+$$
 [-3,-1,1,3]
-\]
+$$
 
 The variance is:
 
-\[
+$$
 \sigma^2=
 \frac{9+1+1+9}{4}=5
-\]
+$$
 
 Ignoring the small epsilon for illustration:
 
-\[
+$$
 \sqrt{\sigma^2}=\sqrt{5}
-\]
+$$
 
 The normalized values are:
 
-\[
+$$
 \left[
 -\frac{3}{\sqrt5},
 -\frac{1}{\sqrt5},
 \frac{1}{\sqrt5},
 \frac{3}{\sqrt5}
 \right]
-\]
+$$
 
 Approximately:
 
@@ -431,15 +431,15 @@ Approximately:
 
 If:
 
-\[
+$$
 \gamma=[1,1,1,1]
-\]
+$$
 
 and:
 
-\[
+$$
 \beta=[0,0,0,0]
-\]
+$$
 
 the affine transformation leaves the normalized values unchanged.
 
@@ -455,15 +455,15 @@ The Gaussian Error Linear Unit is a smooth activation function.
 
 Its standard definition is:
 
-\[
+$$
 \operatorname{GELU}(z)=z\Phi(z)
-\]
+$$
 
-where \(\Phi\) is the standard normal cumulative distribution function.
+where $\Phi$ is the standard normal cumulative distribution function.
 
 An often-used approximation is:
 
-\[
+$$
 \operatorname{GELU}_{\tanh}(z)
 =
 \frac{1}{2}z
@@ -477,7 +477,7 @@ z+0.044715z^3
 \right)
 \right)
 \right]
-\]
+$$
 
 The Phase 16 kernel implements this tanh approximation.
 
@@ -518,15 +518,15 @@ The constant:
 
 approximates:
 
-\[
+$$
 \sqrt{\frac{2}{\pi}}
-\]
+$$
 
 The function calculates the cubic term:
 
-\[
+$$
 x^3
-\]
+$$
 
 and applies the tanh-based GELU approximation.
 
@@ -613,7 +613,7 @@ The two implementations differ in substantial ways.
 | Threads per block | 256 | 128 |
 | Floating-point support | Template dispatch | FP32 only |
 | Mean calculation | Parallel reduction | Parallel reduction |
-| Variance calculation | \(E[x^2]-E[x]^2\) | Centered two-pass variance |
+| Variance calculation | $E[x^2]-E[x]^2$ | Centered two-pass variance |
 | Shared-memory design | Separate storage | Reused dynamic buffer |
 | Input dimension handling | Explicitly 2D | Last-dimension normalization |
 | CUDA device guard | Not present in shown launcher | Present |
@@ -654,27 +654,27 @@ const int64_t rows =
 
 Therefore the input is conceptually flattened into:
 
-\[
+$$
 [\text{rows},\text{hidden}]
-\]
+$$
 
 For a contiguous three-dimensional input:
 
-\[
+$$
 [B,T,H]
-\]
+$$
 
 the number of rows is:
 
-\[
+$$
 B\times T
-\]
+$$
 
 and the hidden dimension is:
 
-\[
+$$
 H
-\]
+$$
 
 This layout supports normalization over the final dimension.
 
@@ -692,21 +692,21 @@ Hidden size     = 92
 
 A corresponding hidden-activation tensor has shape:
 
-\[
+$$
 [256,96,92]
-\]
+$$
 
 Flattening the first two dimensions gives:
 
-\[
+$$
 [24576,92]
-\]
+$$
 
 because:
 
-\[
+$$
 256\times96=24576
-\]
+$$
 
 This is the most representative tensor shape in the archived fused-operator benchmark matrix.
 
@@ -730,9 +730,9 @@ A warp contains 32 threads.
 
 Therefore:
 
-\[
+$$
 128/32=4
-\]
+$$
 
 warps are present in each block.
 
@@ -756,9 +756,9 @@ Each block calculates the normalization statistics for one row.
 
 This represents:
 
-\[
+$$
 24576\times128=3,145,728
-\]
+$$
 
 logical CUDA thread instances across the grid.
 
@@ -796,9 +796,9 @@ sizeof(float) = 4 bytes
 
 the dynamic shared-memory allocation is:
 
-\[
+$$
 128\times4=512\text{ bytes per block}
-\]
+$$
 
 The buffer is reused for two reductions:
 
@@ -831,9 +831,9 @@ hidden = 92
 
 the row begins at:
 
-\[
+$$
 5\times92=460
-\]
+$$
 
 The current row occupies elements:
 
@@ -985,11 +985,11 @@ const float mean =
 
 This implements:
 
-\[
+$$
 \mu_r=
 \frac{1}{D}
 \sum_{j=1}^{D}x_{rj}
-\]
+$$
 
 Every thread needs the mean for the later variance and normalization calculations.
 
@@ -1128,9 +1128,9 @@ for (
 
 This implements the local contributions to:
 
-\[
+$$
 \sum_j(x_{rj}-\mu_r)^2
-\]
+$$
 
 The threads then write their partial variance sums into shared memory:
 
@@ -1157,11 +1157,11 @@ This gives the population variance across the row.
 
 The recovered implementation computes:
 
-\[
+$$
 \sigma^2=
 \frac{1}{D}
 \sum_j(x_j-\mu)^2
-\]
+$$
 
 This is a two-pass approach.
 
@@ -1179,9 +1179,9 @@ Calculate squared deviations from the mean
 
 The earlier Git implementation used the alternative identity:
 
-\[
+$$
 \sigma^2=E[x^2]-E[x]^2
-\]
+$$
 
 The second expression can experience subtractive cancellation when the two terms are close.
 
@@ -1201,15 +1201,15 @@ Floating-point addition is not mathematically associative under finite precision
 
 In general:
 
-\[
+$$
 (a+b)+c
-\]
+$$
 
 may differ slightly from:
 
-\[
+$$
 a+(b+c)
-\]
+$$
 
 when computed using floating-point arithmetic.
 
@@ -1240,15 +1240,15 @@ const float inv_std =
 
 The operation approximates:
 
-\[
+$$
 \frac{1}{\sqrt{\sigma^2+\epsilon}}
-\]
+$$
 
 The archived benchmark uses:
 
-\[
+$$
 \epsilon=10^{-5}
-\]
+$$
 
 The epsilon stabilizes normalization when the variance is small.
 
@@ -1268,11 +1268,11 @@ const float normalized =
 
 This corresponds to:
 
-\[
+$$
 \hat{x}_{rj}=
 \frac{x_{rj}-\mu_r}
 {\sqrt{\sigma_r^2+\epsilon}}
-\]
+$$
 
 The operation is performed independently for each feature after the shared row statistics have been computed.
 
@@ -1292,10 +1292,10 @@ const float affine =
 
 This corresponds to:
 
-\[
+$$
 z_{rj}=
 \gamma_j\hat{x}_{rj}+\beta_j
-\]
+$$
 
 The affine parameters are indexed by feature position.
 
@@ -1841,14 +1841,14 @@ max_abs_error = (
 
 This measures:
 
-\[
+$$
 \max_i
 \left|
 y_i^{\text{PyTorch}}
 -
 y_i^{\text{CUDA}}
 \right|
-\]
+$$
 
 It is a direct measure of the largest absolute difference for the tested input.
 
@@ -1871,9 +1871,9 @@ The saved benchmark contains four shapes.
 
 The largest observed error was:
 
-\[
+$$
 1.9073486328125\times10^{-6}
-\]
+$$
 
 These are small differences for the tested FP32 inputs.
 
@@ -2234,21 +2234,21 @@ The recovered source shows:
 
 The archived benchmark records maximum absolute errors no greater than approximately:
 
-\[
+$$
 1.91\times10^{-6}
-\]
+$$
 
 The recorded median speedups range from approximately:
 
-\[
+$$
 1.25\times
-\]
+$$
 
 to:
 
-\[
+$$
 3.39\times
-\]
+$$
 
 ## Diagnosis
 
@@ -2386,15 +2386,15 @@ Phase 16 establishes the custom CUDA fusion milestone of the GPU-Accelerated Mul
 
 The recovered implementation combines:
 
-\[
+$$
 \operatorname{LayerNorm}
-\]
+$$
 
 and:
 
-\[
+$$
 \operatorname{GELU}_{\tanh}
-\]
+$$
 
 into one forward CUDA kernel.
 

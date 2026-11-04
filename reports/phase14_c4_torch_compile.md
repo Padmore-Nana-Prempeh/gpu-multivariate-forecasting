@@ -752,19 +752,19 @@ For short jobs, compilation overhead can outweigh steady-state savings.
 
 A simplified compilation break-even model is:
 
-\[
+$$
 N_{\text{break-even}}
 =
 \frac{T_{\text{additional startup}}}
 {T_{\text{eager steady state}}-
 T_{\text{compiled steady state}}}
-\]
+$$
 
 where:
 
-- \(T_{\text{additional startup}}\) represents additional initial compilation cost.
-- \(T_{\text{eager steady state}}\) represents ordinary execution time per unit of work.
-- \(T_{\text{compiled steady state}}\) represents compiled execution time per equivalent unit of work.
+- $T_{\text{additional startup}}$ represents additional initial compilation cost.
+- $T_{\text{eager steady state}}$ represents ordinary execution time per unit of work.
+- $T_{\text{compiled steady state}}$ represents compiled execution time per equivalent unit of work.
 
 This expression applies when compiled steady-state execution is faster.
 
@@ -778,9 +778,9 @@ Compiled time per epoch     = 3 s
 
 Then:
 
-\[
+$$
 N_{\text{break-even}} = 20 / (5-3) = 10
-\]
+$$
 
 Approximately ten epochs of steady-state savings would recover the additional startup cost.
 
@@ -1133,23 +1133,23 @@ Throughput:
 
 The throughput change is:
 
-\[
+$$
 100
 \left(
 \frac{4233.858761}{3590.778655} - 1
 \right)
 \approx 17.91\%
-\]
+$$
 
 The epoch-time change is:
 
-\[
+$$
 100
 \left(
 \frac{11.505417}{13.590975} - 1
 \right)
 \approx -15.35\%
-\]
+$$
 
 Therefore:
 
@@ -1204,23 +1204,23 @@ C4 = 229.823 MB
 
 Relative to C3:
 
-\[
+$$
 100
 \left(
 1 - \frac{229.823}{266.738}
 \right)
 \approx 13.84\%
-\]
+$$
 
 Relative to C0:
 
-\[
+$$
 100
 \left(
 1 - \frac{229.823}{576.901}
 \right)
 \approx 60.16\%
-\]
+$$
 
 Therefore C4 reduced the recorded allocated-memory requirement relative to C3 and C0.
 

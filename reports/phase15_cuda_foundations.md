@@ -35,9 +35,9 @@ Phase 15 transitions from configuring PyTorch execution to understanding how GPU
 
 The initial CUDA operation is:
 
-\[
+$$
 y_i=2x_i
-\]
+$$
 
 Although mathematically simple, this operation introduces several important GPU systems concepts:
 
@@ -283,9 +283,9 @@ For example, a block containing:
 
 contains:
 
-\[
+$$
 256/32=8
-\]
+$$
 
 warps.
 
@@ -319,9 +319,9 @@ Our kernel uses one-dimensional indexing.
 
 The fundamental equation is:
 
-\[
+$$
 i=\text{blockIdx.x}\times\text{blockDim.x}+\text{threadIdx.x}
-\]
+$$
 
 where:
 
@@ -339,9 +339,9 @@ threadIdx.x = 5
 
 Then:
 
-\[
+$$
 i=2(256)+5=517
-\]
+$$
 
 That thread processes element 517.
 
@@ -353,21 +353,21 @@ The global index must be calculated correctly to avoid duplicate work or unproce
 
 The target operation is:
 
-\[
+$$
 y_i=2x_i
-\]
+$$
 
 for:
 
-\[
+$$
 i=0,\ldots,n-1
-\]
+$$
 
 where:
 
-- \(x_i\) is an input element.
-- \(y_i\) is its output.
-- \(n\) is the number of tensor elements.
+- $x_i$ is an input element.
+- $y_i$ is its output.
+- $n$ is the number of tensor elements.
 
 The reference PyTorch implementation is:
 
@@ -661,9 +661,9 @@ threads per block = 256
 
 The required number of blocks is:
 
-\[
+$$
 \left\lceil1000/256\right\rceil=4
-\]
+$$
 
 The launch creates:
 
@@ -768,9 +768,9 @@ Input shape:
 
 Then:
 
-\[
+$$
 n=256\times96\times7=172032
-\]
+$$
 
 The kernel processes the tensor through flat indexing.
 
@@ -807,9 +807,9 @@ n = 172,032
 
 the number of blocks is:
 
-\[
+$$
 172032/256=672
-\]
+$$
 
 Therefore the launch contains:
 
@@ -835,9 +835,9 @@ Each block contains:
 
 With 32 threads per warp:
 
-\[
+$$
 256/32=8
-\]
+$$
 
 warps per block.
 
@@ -1328,9 +1328,9 @@ The suite also contains:
 
 Therefore the total planned cases are:
 
-\[
+$$
 24+1+2=27
-\]
+$$
 
 The suite contains 27 defined test cases.
 
@@ -1588,15 +1588,15 @@ These boundaries are appropriate for an introductory CUDA extension.
 
 Our Phase 15 operation performs:
 
-\[
+$$
 y=2x
-\]
+$$
 
 Mathematically:
 
-\[
+$$
 \frac{dy}{dx}=2
-\]
+$$
 
 However, mathematical differentiability does not automatically provide a working PyTorch autograd implementation for a custom extension.
 
@@ -1664,36 +1664,36 @@ Phase 16 is more advanced.
 
 The fused LayerNorm+GELU kernel must calculate normalization statistics.
 
-For a feature dimension \(D\), LayerNorm uses:
+For a feature dimension $D$, LayerNorm uses:
 
-\[
+$$
 \mu=\frac{1}{D}\sum_{j=1}^{D}x_j
-\]
+$$
 
 and:
 
-\[
+$$
 \sigma^2=
 \frac{1}{D}
 \sum_{j=1}^{D}(x_j-\mu)^2
-\]
+$$
 
 The normalized output is:
 
-\[
+$$
 z_j=
 \gamma_j
 \frac{x_j-\mu}
 {\sqrt{\sigma^2+\epsilon}}
 +
 \beta_j
-\]
+$$
 
 GELU is then applied:
 
-\[
+$$
 y_j=\operatorname{GELU}(z_j)
-\]
+$$
 
 Unlike the Phase 15 operation, calculating the mean and variance often requires cooperation among multiple threads.
 
@@ -1883,9 +1883,9 @@ The project successfully recovered the source of its first CUDA extension from t
 
 The recovered kernel implements:
 
-\[
+$$
 y_i=2x_i
-\]
+$$
 
 using one-dimensional CUDA thread indexing.
 
@@ -2077,9 +2077,9 @@ The recovered implementation demonstrates how a PyTorch tensor operation can be 
 
 The kernel computes:
 
-\[
+$$
 y_i=2x_i
-\]
+$$
 
 using one-dimensional CUDA indexing and a 256-thread block configuration.
 
