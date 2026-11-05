@@ -1,0 +1,32 @@
+data:
+  batch_size: 256
+  horizon: 24
+  num_workers: 0
+  path: data/ETTm1.csv
+  pin_memory: true
+  seq_len: 96
+  train_ratio: 0.7
+  val_ratio: 0.1
+model:
+  dropout: 0.1
+  hidden_size: 128
+  name: lstm
+  nhead: 4
+  num_layers: 2
+  tcn_channels:
+  - 64
+  - 128
+  - 128
+output:
+  dir: results/official_v1
+seed: 17
+train:
+  amp: true
+  compile: false
+  device: cuda
+  epochs: 20
+  grad_clip: 1.0
+  lr: 0.001
+  non_blocking_h2d: true
+  prefetch_stream: true
+  weight_decay: 0.0001

@@ -1,0 +1,1045 @@
+{
+  "campaign": "official_v1",
+  "models": [
+    "lstm",
+    "gru",
+    "tcn",
+    "transformer"
+  ],
+  "planned_runs": 60,
+  "runs": [
+    {
+      "config_sha256": "a6f8f2ed16eeaa9b524cc1db7bf9844f791716eeb22c906fc537c8737ee74b43",
+      "engine_run_dir": "results/official_v1/lstm_seed17_amp0_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": false,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "lstm",
+      "resolved_config": "experiments/official_v1/configs/lstm_seed17_c0.yaml",
+      "run_id": "lstm_seed17_c0",
+      "seed": 17,
+      "source_config": "configs/lstm_baseline.yaml",
+      "system": "C0"
+    },
+    {
+      "config_sha256": "c906669d75a20930b3f01815fb410064afd184ac31aec2d937cc2cdbc256c1f5",
+      "engine_run_dir": "results/official_v1/lstm_seed17_amp1_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "lstm",
+      "resolved_config": "experiments/official_v1/configs/lstm_seed17_c1.yaml",
+      "run_id": "lstm_seed17_c1",
+      "seed": 17,
+      "source_config": "configs/lstm_baseline.yaml",
+      "system": "C1"
+    },
+    {
+      "config_sha256": "c4b29b0fb30f5cb2f94714f76e94778d0fcb6149a3b310a94170d2e4b7cf79d7",
+      "engine_run_dir": "results/official_v1/lstm_seed17_amp1_pin1_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": false
+      },
+      "model": "lstm",
+      "resolved_config": "experiments/official_v1/configs/lstm_seed17_c2.yaml",
+      "run_id": "lstm_seed17_c2",
+      "seed": 17,
+      "source_config": "configs/lstm_baseline.yaml",
+      "system": "C2"
+    },
+    {
+      "config_sha256": "d125449959d34d84aa4653d8e93687d8a388ce4e7a96f64cfde16017bd580fae",
+      "engine_run_dir": "results/official_v1/lstm_seed17_amp1_pin1_prefetch1_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "lstm",
+      "resolved_config": "experiments/official_v1/configs/lstm_seed17_c3.yaml",
+      "run_id": "lstm_seed17_c3",
+      "seed": 17,
+      "source_config": "configs/lstm_baseline.yaml",
+      "system": "C3"
+    },
+    {
+      "config_sha256": "707a97e73a3544ae424eb5fed9c4869163ca992a62de2678a09cc61985017b49",
+      "engine_run_dir": "results/official_v1/lstm_seed17_amp1_pin1_prefetch1_compile1",
+      "flags": {
+        "amp": true,
+        "compile": true,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "lstm",
+      "resolved_config": "experiments/official_v1/configs/lstm_seed17_c4.yaml",
+      "run_id": "lstm_seed17_c4",
+      "seed": 17,
+      "source_config": "configs/lstm_baseline.yaml",
+      "system": "C4"
+    },
+    {
+      "config_sha256": "abd57d36fc0bb438474f32eab44f12f79d7b7486179b6e5c9236aec2fad64000",
+      "engine_run_dir": "results/official_v1/lstm_seed42_amp0_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": false,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "lstm",
+      "resolved_config": "experiments/official_v1/configs/lstm_seed42_c0.yaml",
+      "run_id": "lstm_seed42_c0",
+      "seed": 42,
+      "source_config": "configs/lstm_baseline.yaml",
+      "system": "C0"
+    },
+    {
+      "config_sha256": "68d097dc3d6c44e9638914fb957b4b1699c14a844598d62e61cc3ca688ca786c",
+      "engine_run_dir": "results/official_v1/lstm_seed42_amp1_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "lstm",
+      "resolved_config": "experiments/official_v1/configs/lstm_seed42_c1.yaml",
+      "run_id": "lstm_seed42_c1",
+      "seed": 42,
+      "source_config": "configs/lstm_baseline.yaml",
+      "system": "C1"
+    },
+    {
+      "config_sha256": "c8621ce9c8271ca11601b10f8216d6cfe3394c48cff35a5e5a70708356133ce0",
+      "engine_run_dir": "results/official_v1/lstm_seed42_amp1_pin1_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": false
+      },
+      "model": "lstm",
+      "resolved_config": "experiments/official_v1/configs/lstm_seed42_c2.yaml",
+      "run_id": "lstm_seed42_c2",
+      "seed": 42,
+      "source_config": "configs/lstm_baseline.yaml",
+      "system": "C2"
+    },
+    {
+      "config_sha256": "bb47a657d3cd12e515964358a159fc0e0d3f0b860f5746ea0ec516ce3d735de8",
+      "engine_run_dir": "results/official_v1/lstm_seed42_amp1_pin1_prefetch1_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "lstm",
+      "resolved_config": "experiments/official_v1/configs/lstm_seed42_c3.yaml",
+      "run_id": "lstm_seed42_c3",
+      "seed": 42,
+      "source_config": "configs/lstm_baseline.yaml",
+      "system": "C3"
+    },
+    {
+      "config_sha256": "3f80bc5ec4067722abc7a236068bb6b61bccce0ac13518004a8ae5831a527d7e",
+      "engine_run_dir": "results/official_v1/lstm_seed42_amp1_pin1_prefetch1_compile1",
+      "flags": {
+        "amp": true,
+        "compile": true,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "lstm",
+      "resolved_config": "experiments/official_v1/configs/lstm_seed42_c4.yaml",
+      "run_id": "lstm_seed42_c4",
+      "seed": 42,
+      "source_config": "configs/lstm_baseline.yaml",
+      "system": "C4"
+    },
+    {
+      "config_sha256": "08f96d9ef8636f2e4bbb26d3479b06e2879eef657d847d00684644b17066093c",
+      "engine_run_dir": "results/official_v1/lstm_seed101_amp0_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": false,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "lstm",
+      "resolved_config": "experiments/official_v1/configs/lstm_seed101_c0.yaml",
+      "run_id": "lstm_seed101_c0",
+      "seed": 101,
+      "source_config": "configs/lstm_baseline.yaml",
+      "system": "C0"
+    },
+    {
+      "config_sha256": "2b7dc50b3ad2d798e74ac21dbf0397ba79e4d1332ebc9bf3ca7ff089ca7a8c0b",
+      "engine_run_dir": "results/official_v1/lstm_seed101_amp1_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "lstm",
+      "resolved_config": "experiments/official_v1/configs/lstm_seed101_c1.yaml",
+      "run_id": "lstm_seed101_c1",
+      "seed": 101,
+      "source_config": "configs/lstm_baseline.yaml",
+      "system": "C1"
+    },
+    {
+      "config_sha256": "44cc94045b3b8b0d0694404d8a8219c7f8d91669e5559075fa32216bf71507a3",
+      "engine_run_dir": "results/official_v1/lstm_seed101_amp1_pin1_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": false
+      },
+      "model": "lstm",
+      "resolved_config": "experiments/official_v1/configs/lstm_seed101_c2.yaml",
+      "run_id": "lstm_seed101_c2",
+      "seed": 101,
+      "source_config": "configs/lstm_baseline.yaml",
+      "system": "C2"
+    },
+    {
+      "config_sha256": "cb1d86dede7867995a059cd181b18a9157e0ccab1f5dbf172c57b13ef1a0d7d4",
+      "engine_run_dir": "results/official_v1/lstm_seed101_amp1_pin1_prefetch1_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "lstm",
+      "resolved_config": "experiments/official_v1/configs/lstm_seed101_c3.yaml",
+      "run_id": "lstm_seed101_c3",
+      "seed": 101,
+      "source_config": "configs/lstm_baseline.yaml",
+      "system": "C3"
+    },
+    {
+      "config_sha256": "475e453356d4c3d043d27737dac2a26b9191e2d5c35096f8961a7d7c2d2797e5",
+      "engine_run_dir": "results/official_v1/lstm_seed101_amp1_pin1_prefetch1_compile1",
+      "flags": {
+        "amp": true,
+        "compile": true,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "lstm",
+      "resolved_config": "experiments/official_v1/configs/lstm_seed101_c4.yaml",
+      "run_id": "lstm_seed101_c4",
+      "seed": 101,
+      "source_config": "configs/lstm_baseline.yaml",
+      "system": "C4"
+    },
+    {
+      "config_sha256": "426a6a56222893f159b56a6b1c784f71e4801bc9fa92261d81087151e19bb62f",
+      "engine_run_dir": "results/official_v1/gru_seed17_amp0_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": false,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "gru",
+      "resolved_config": "experiments/official_v1/configs/gru_seed17_c0.yaml",
+      "run_id": "gru_seed17_c0",
+      "seed": 17,
+      "source_config": "configs/gru_baseline.yaml",
+      "system": "C0"
+    },
+    {
+      "config_sha256": "41d30a8d0891f9fdfee2ec435c0b58b5269d3c8e8644511518f01a0801e8faed",
+      "engine_run_dir": "results/official_v1/gru_seed17_amp1_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "gru",
+      "resolved_config": "experiments/official_v1/configs/gru_seed17_c1.yaml",
+      "run_id": "gru_seed17_c1",
+      "seed": 17,
+      "source_config": "configs/gru_baseline.yaml",
+      "system": "C1"
+    },
+    {
+      "config_sha256": "0d577dc5387c0b46009f8af848f3f33cb665ab2631fedf9d169b2feceedd13b6",
+      "engine_run_dir": "results/official_v1/gru_seed17_amp1_pin1_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": false
+      },
+      "model": "gru",
+      "resolved_config": "experiments/official_v1/configs/gru_seed17_c2.yaml",
+      "run_id": "gru_seed17_c2",
+      "seed": 17,
+      "source_config": "configs/gru_baseline.yaml",
+      "system": "C2"
+    },
+    {
+      "config_sha256": "dea4950bb6019f2e9215744debae10f96325fd65cb5db47805512c837ab15df0",
+      "engine_run_dir": "results/official_v1/gru_seed17_amp1_pin1_prefetch1_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "gru",
+      "resolved_config": "experiments/official_v1/configs/gru_seed17_c3.yaml",
+      "run_id": "gru_seed17_c3",
+      "seed": 17,
+      "source_config": "configs/gru_baseline.yaml",
+      "system": "C3"
+    },
+    {
+      "config_sha256": "7e72bafb89c32b42a99a66f1747d5577c2094896865a2f508e7ff6fceff364a4",
+      "engine_run_dir": "results/official_v1/gru_seed17_amp1_pin1_prefetch1_compile1",
+      "flags": {
+        "amp": true,
+        "compile": true,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "gru",
+      "resolved_config": "experiments/official_v1/configs/gru_seed17_c4.yaml",
+      "run_id": "gru_seed17_c4",
+      "seed": 17,
+      "source_config": "configs/gru_baseline.yaml",
+      "system": "C4"
+    },
+    {
+      "config_sha256": "fc20ad72c0c6a77f981b9a94b9952295eccba3f7068edab0a7d668e824ba6a14",
+      "engine_run_dir": "results/official_v1/gru_seed42_amp0_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": false,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "gru",
+      "resolved_config": "experiments/official_v1/configs/gru_seed42_c0.yaml",
+      "run_id": "gru_seed42_c0",
+      "seed": 42,
+      "source_config": "configs/gru_baseline.yaml",
+      "system": "C0"
+    },
+    {
+      "config_sha256": "bc63136b763af99e2bd7c556388ad242087e8a4d73a5fe9423ee51c7d691a8f2",
+      "engine_run_dir": "results/official_v1/gru_seed42_amp1_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "gru",
+      "resolved_config": "experiments/official_v1/configs/gru_seed42_c1.yaml",
+      "run_id": "gru_seed42_c1",
+      "seed": 42,
+      "source_config": "configs/gru_baseline.yaml",
+      "system": "C1"
+    },
+    {
+      "config_sha256": "8fd903003351d9b05670812680ed1dce01e5fdc51a9abc5c7882ad61928775fd",
+      "engine_run_dir": "results/official_v1/gru_seed42_amp1_pin1_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": false
+      },
+      "model": "gru",
+      "resolved_config": "experiments/official_v1/configs/gru_seed42_c2.yaml",
+      "run_id": "gru_seed42_c2",
+      "seed": 42,
+      "source_config": "configs/gru_baseline.yaml",
+      "system": "C2"
+    },
+    {
+      "config_sha256": "90275406d09b2f6af73d76879ef08ca78b0309a10a959c6397a3950e9d88eac7",
+      "engine_run_dir": "results/official_v1/gru_seed42_amp1_pin1_prefetch1_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "gru",
+      "resolved_config": "experiments/official_v1/configs/gru_seed42_c3.yaml",
+      "run_id": "gru_seed42_c3",
+      "seed": 42,
+      "source_config": "configs/gru_baseline.yaml",
+      "system": "C3"
+    },
+    {
+      "config_sha256": "15a22458d7502950eec96c382acbca97c4683c24540d77b6776ef544dc69feb7",
+      "engine_run_dir": "results/official_v1/gru_seed42_amp1_pin1_prefetch1_compile1",
+      "flags": {
+        "amp": true,
+        "compile": true,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "gru",
+      "resolved_config": "experiments/official_v1/configs/gru_seed42_c4.yaml",
+      "run_id": "gru_seed42_c4",
+      "seed": 42,
+      "source_config": "configs/gru_baseline.yaml",
+      "system": "C4"
+    },
+    {
+      "config_sha256": "be4e295daf418a3d0a8c41c90229ce3d0a6ff64ddbb3d23e1fac367a597b9a47",
+      "engine_run_dir": "results/official_v1/gru_seed101_amp0_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": false,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "gru",
+      "resolved_config": "experiments/official_v1/configs/gru_seed101_c0.yaml",
+      "run_id": "gru_seed101_c0",
+      "seed": 101,
+      "source_config": "configs/gru_baseline.yaml",
+      "system": "C0"
+    },
+    {
+      "config_sha256": "76d0f73950ea0a4a4bb767488c2e2158427a5994be8f69afc597ac9797a18cd1",
+      "engine_run_dir": "results/official_v1/gru_seed101_amp1_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "gru",
+      "resolved_config": "experiments/official_v1/configs/gru_seed101_c1.yaml",
+      "run_id": "gru_seed101_c1",
+      "seed": 101,
+      "source_config": "configs/gru_baseline.yaml",
+      "system": "C1"
+    },
+    {
+      "config_sha256": "218f9d94531c5febf82b2ce1e26da147dc1ccd6d31c32b35f3ce89ed75fc0a00",
+      "engine_run_dir": "results/official_v1/gru_seed101_amp1_pin1_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": false
+      },
+      "model": "gru",
+      "resolved_config": "experiments/official_v1/configs/gru_seed101_c2.yaml",
+      "run_id": "gru_seed101_c2",
+      "seed": 101,
+      "source_config": "configs/gru_baseline.yaml",
+      "system": "C2"
+    },
+    {
+      "config_sha256": "211f2c18ba69bec6a44a5fd5f41f69e3b29b7623198c85eb85be387549588a90",
+      "engine_run_dir": "results/official_v1/gru_seed101_amp1_pin1_prefetch1_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "gru",
+      "resolved_config": "experiments/official_v1/configs/gru_seed101_c3.yaml",
+      "run_id": "gru_seed101_c3",
+      "seed": 101,
+      "source_config": "configs/gru_baseline.yaml",
+      "system": "C3"
+    },
+    {
+      "config_sha256": "3ed87de2b33310c9ed1a18b4080fe3ef19b695c852d62f5e20366026bbf6f16f",
+      "engine_run_dir": "results/official_v1/gru_seed101_amp1_pin1_prefetch1_compile1",
+      "flags": {
+        "amp": true,
+        "compile": true,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "gru",
+      "resolved_config": "experiments/official_v1/configs/gru_seed101_c4.yaml",
+      "run_id": "gru_seed101_c4",
+      "seed": 101,
+      "source_config": "configs/gru_baseline.yaml",
+      "system": "C4"
+    },
+    {
+      "config_sha256": "cdf1533fe9884e1e844fb598deddd91d5a9535e6d2cbf14d4710a821ed867753",
+      "engine_run_dir": "results/official_v1/tcn_seed17_amp0_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": false,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "tcn",
+      "resolved_config": "experiments/official_v1/configs/tcn_seed17_c0.yaml",
+      "run_id": "tcn_seed17_c0",
+      "seed": 17,
+      "source_config": "configs/tcn_baseline.yaml",
+      "system": "C0"
+    },
+    {
+      "config_sha256": "e5a66267efa6031d0c0cfefd7b3e8b43a2f2fd85c143ef1ce45a24d87ce1d954",
+      "engine_run_dir": "results/official_v1/tcn_seed17_amp1_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "tcn",
+      "resolved_config": "experiments/official_v1/configs/tcn_seed17_c1.yaml",
+      "run_id": "tcn_seed17_c1",
+      "seed": 17,
+      "source_config": "configs/tcn_baseline.yaml",
+      "system": "C1"
+    },
+    {
+      "config_sha256": "a5fc59853c91d0300133b69b862358b0b56244d36ee5abbf5f32c940a043d2bd",
+      "engine_run_dir": "results/official_v1/tcn_seed17_amp1_pin1_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": false
+      },
+      "model": "tcn",
+      "resolved_config": "experiments/official_v1/configs/tcn_seed17_c2.yaml",
+      "run_id": "tcn_seed17_c2",
+      "seed": 17,
+      "source_config": "configs/tcn_baseline.yaml",
+      "system": "C2"
+    },
+    {
+      "config_sha256": "fadc74239f7c2c41abd479282c06306e6dbc82a5842b57a2dd0eee94de9414ed",
+      "engine_run_dir": "results/official_v1/tcn_seed17_amp1_pin1_prefetch1_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "tcn",
+      "resolved_config": "experiments/official_v1/configs/tcn_seed17_c3.yaml",
+      "run_id": "tcn_seed17_c3",
+      "seed": 17,
+      "source_config": "configs/tcn_baseline.yaml",
+      "system": "C3"
+    },
+    {
+      "config_sha256": "02c4b218f3e2d01dd2a357bc9e488a614ca1555a89e7d847330e8c64c423847b",
+      "engine_run_dir": "results/official_v1/tcn_seed17_amp1_pin1_prefetch1_compile1",
+      "flags": {
+        "amp": true,
+        "compile": true,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "tcn",
+      "resolved_config": "experiments/official_v1/configs/tcn_seed17_c4.yaml",
+      "run_id": "tcn_seed17_c4",
+      "seed": 17,
+      "source_config": "configs/tcn_baseline.yaml",
+      "system": "C4"
+    },
+    {
+      "config_sha256": "d71f2487becee03f407e91d631e9c04dbab0f33c9b8d61b5597c015a88d14ef1",
+      "engine_run_dir": "results/official_v1/tcn_seed42_amp0_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": false,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "tcn",
+      "resolved_config": "experiments/official_v1/configs/tcn_seed42_c0.yaml",
+      "run_id": "tcn_seed42_c0",
+      "seed": 42,
+      "source_config": "configs/tcn_baseline.yaml",
+      "system": "C0"
+    },
+    {
+      "config_sha256": "cb2eefdd783f1af387441a303723117d1ff3ad83f5f430f4adf47d99ed7f9f0c",
+      "engine_run_dir": "results/official_v1/tcn_seed42_amp1_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "tcn",
+      "resolved_config": "experiments/official_v1/configs/tcn_seed42_c1.yaml",
+      "run_id": "tcn_seed42_c1",
+      "seed": 42,
+      "source_config": "configs/tcn_baseline.yaml",
+      "system": "C1"
+    },
+    {
+      "config_sha256": "10fb692784ab4d1c08ad0d2174308c959eb95656858adcc2502c68dc22408c3c",
+      "engine_run_dir": "results/official_v1/tcn_seed42_amp1_pin1_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": false
+      },
+      "model": "tcn",
+      "resolved_config": "experiments/official_v1/configs/tcn_seed42_c2.yaml",
+      "run_id": "tcn_seed42_c2",
+      "seed": 42,
+      "source_config": "configs/tcn_baseline.yaml",
+      "system": "C2"
+    },
+    {
+      "config_sha256": "3281fdf81394a1753e092aa06046be1b990aad2ba548f2ab00062594f527a8d2",
+      "engine_run_dir": "results/official_v1/tcn_seed42_amp1_pin1_prefetch1_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "tcn",
+      "resolved_config": "experiments/official_v1/configs/tcn_seed42_c3.yaml",
+      "run_id": "tcn_seed42_c3",
+      "seed": 42,
+      "source_config": "configs/tcn_baseline.yaml",
+      "system": "C3"
+    },
+    {
+      "config_sha256": "7a917f05eee1c79f8b7940950cc95b0169c0a258e93d17e7f297a835aa437ba1",
+      "engine_run_dir": "results/official_v1/tcn_seed42_amp1_pin1_prefetch1_compile1",
+      "flags": {
+        "amp": true,
+        "compile": true,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "tcn",
+      "resolved_config": "experiments/official_v1/configs/tcn_seed42_c4.yaml",
+      "run_id": "tcn_seed42_c4",
+      "seed": 42,
+      "source_config": "configs/tcn_baseline.yaml",
+      "system": "C4"
+    },
+    {
+      "config_sha256": "13a4212b3cd8e2bd2a4cb0715ae2366956eb30c63f514c9889481ee72800eb40",
+      "engine_run_dir": "results/official_v1/tcn_seed101_amp0_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": false,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "tcn",
+      "resolved_config": "experiments/official_v1/configs/tcn_seed101_c0.yaml",
+      "run_id": "tcn_seed101_c0",
+      "seed": 101,
+      "source_config": "configs/tcn_baseline.yaml",
+      "system": "C0"
+    },
+    {
+      "config_sha256": "2cf8509ee0c692793578cca8cc1abd89c850ffc009f72d65ed7a4cbc613ee00c",
+      "engine_run_dir": "results/official_v1/tcn_seed101_amp1_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "tcn",
+      "resolved_config": "experiments/official_v1/configs/tcn_seed101_c1.yaml",
+      "run_id": "tcn_seed101_c1",
+      "seed": 101,
+      "source_config": "configs/tcn_baseline.yaml",
+      "system": "C1"
+    },
+    {
+      "config_sha256": "00f9869d3536e5165b92d20cffaf0ed11199a15fd1cb9c5b49dc0f32af9e12eb",
+      "engine_run_dir": "results/official_v1/tcn_seed101_amp1_pin1_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": false
+      },
+      "model": "tcn",
+      "resolved_config": "experiments/official_v1/configs/tcn_seed101_c2.yaml",
+      "run_id": "tcn_seed101_c2",
+      "seed": 101,
+      "source_config": "configs/tcn_baseline.yaml",
+      "system": "C2"
+    },
+    {
+      "config_sha256": "0e75663ea142bea9b41fa93fa4bc0203e4f3ac1b90ef63aa1254149285cfb88b",
+      "engine_run_dir": "results/official_v1/tcn_seed101_amp1_pin1_prefetch1_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "tcn",
+      "resolved_config": "experiments/official_v1/configs/tcn_seed101_c3.yaml",
+      "run_id": "tcn_seed101_c3",
+      "seed": 101,
+      "source_config": "configs/tcn_baseline.yaml",
+      "system": "C3"
+    },
+    {
+      "config_sha256": "78af1afd7fb78595b30fe2bd1dfe6ad0735147ef230a8a6f92fd2ef3e1b5a442",
+      "engine_run_dir": "results/official_v1/tcn_seed101_amp1_pin1_prefetch1_compile1",
+      "flags": {
+        "amp": true,
+        "compile": true,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "tcn",
+      "resolved_config": "experiments/official_v1/configs/tcn_seed101_c4.yaml",
+      "run_id": "tcn_seed101_c4",
+      "seed": 101,
+      "source_config": "configs/tcn_baseline.yaml",
+      "system": "C4"
+    },
+    {
+      "config_sha256": "4d76326458921650b1d4c16c7b36bb088aca71957d21f5cf2baccc4829fd92e2",
+      "engine_run_dir": "results/official_v1/transformer_seed17_amp0_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": false,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "transformer",
+      "resolved_config": "experiments/official_v1/configs/transformer_seed17_c0.yaml",
+      "run_id": "transformer_seed17_c0",
+      "seed": 17,
+      "source_config": "configs/transformer_baseline.yaml",
+      "system": "C0"
+    },
+    {
+      "config_sha256": "905a7cf9bd58c7ca78fedfa23e32a2975285d18d7b6b5930c52cc7ce131094d7",
+      "engine_run_dir": "results/official_v1/transformer_seed17_amp1_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "transformer",
+      "resolved_config": "experiments/official_v1/configs/transformer_seed17_c1.yaml",
+      "run_id": "transformer_seed17_c1",
+      "seed": 17,
+      "source_config": "configs/transformer_baseline.yaml",
+      "system": "C1"
+    },
+    {
+      "config_sha256": "0b520ad5068020783f45583fc631d3ec0f44ff6fbbe1666b7ae7db0d6c89b6e9",
+      "engine_run_dir": "results/official_v1/transformer_seed17_amp1_pin1_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": false
+      },
+      "model": "transformer",
+      "resolved_config": "experiments/official_v1/configs/transformer_seed17_c2.yaml",
+      "run_id": "transformer_seed17_c2",
+      "seed": 17,
+      "source_config": "configs/transformer_baseline.yaml",
+      "system": "C2"
+    },
+    {
+      "config_sha256": "1c64d7eb00028d75815cf5a91005f03c8a9d6bc04b6d992b0df83dd72e36b260",
+      "engine_run_dir": "results/official_v1/transformer_seed17_amp1_pin1_prefetch1_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "transformer",
+      "resolved_config": "experiments/official_v1/configs/transformer_seed17_c3.yaml",
+      "run_id": "transformer_seed17_c3",
+      "seed": 17,
+      "source_config": "configs/transformer_baseline.yaml",
+      "system": "C3"
+    },
+    {
+      "config_sha256": "46636f79a40d4d3a90ba963d911817257c9d9d64537d385698f6350c1184993a",
+      "engine_run_dir": "results/official_v1/transformer_seed17_amp1_pin1_prefetch1_compile1",
+      "flags": {
+        "amp": true,
+        "compile": true,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "transformer",
+      "resolved_config": "experiments/official_v1/configs/transformer_seed17_c4.yaml",
+      "run_id": "transformer_seed17_c4",
+      "seed": 17,
+      "source_config": "configs/transformer_baseline.yaml",
+      "system": "C4"
+    },
+    {
+      "config_sha256": "8f889c7961c9ef697a312d07dd54e074757acce15f6c7b1c7f7dcb2ae7e38f8e",
+      "engine_run_dir": "results/official_v1/transformer_seed42_amp0_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": false,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "transformer",
+      "resolved_config": "experiments/official_v1/configs/transformer_seed42_c0.yaml",
+      "run_id": "transformer_seed42_c0",
+      "seed": 42,
+      "source_config": "configs/transformer_baseline.yaml",
+      "system": "C0"
+    },
+    {
+      "config_sha256": "1994cd59270250847cc10da896d91496771125664a423b87596657816433c55b",
+      "engine_run_dir": "results/official_v1/transformer_seed42_amp1_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "transformer",
+      "resolved_config": "experiments/official_v1/configs/transformer_seed42_c1.yaml",
+      "run_id": "transformer_seed42_c1",
+      "seed": 42,
+      "source_config": "configs/transformer_baseline.yaml",
+      "system": "C1"
+    },
+    {
+      "config_sha256": "be8dd20ea874ef7cbf7495f2d2c68409366f73cff5659caf7991d8003341b9e6",
+      "engine_run_dir": "results/official_v1/transformer_seed42_amp1_pin1_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": false
+      },
+      "model": "transformer",
+      "resolved_config": "experiments/official_v1/configs/transformer_seed42_c2.yaml",
+      "run_id": "transformer_seed42_c2",
+      "seed": 42,
+      "source_config": "configs/transformer_baseline.yaml",
+      "system": "C2"
+    },
+    {
+      "config_sha256": "4851ea78a400cdee80d5d669ffbe82706b6b3de70512e42771e1a6ff35e6faf8",
+      "engine_run_dir": "results/official_v1/transformer_seed42_amp1_pin1_prefetch1_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "transformer",
+      "resolved_config": "experiments/official_v1/configs/transformer_seed42_c3.yaml",
+      "run_id": "transformer_seed42_c3",
+      "seed": 42,
+      "source_config": "configs/transformer_baseline.yaml",
+      "system": "C3"
+    },
+    {
+      "config_sha256": "4159685a0c55ca4a3719d0e69632280ebd1cea2b42e078c0173eab1c1ffec41a",
+      "engine_run_dir": "results/official_v1/transformer_seed42_amp1_pin1_prefetch1_compile1",
+      "flags": {
+        "amp": true,
+        "compile": true,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "transformer",
+      "resolved_config": "experiments/official_v1/configs/transformer_seed42_c4.yaml",
+      "run_id": "transformer_seed42_c4",
+      "seed": 42,
+      "source_config": "configs/transformer_baseline.yaml",
+      "system": "C4"
+    },
+    {
+      "config_sha256": "d8aefb9229c039e3a7ac83a7f96a8ddc97e3420e63ce53ca44c6d3c1aefce027",
+      "engine_run_dir": "results/official_v1/transformer_seed101_amp0_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": false,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "transformer",
+      "resolved_config": "experiments/official_v1/configs/transformer_seed101_c0.yaml",
+      "run_id": "transformer_seed101_c0",
+      "seed": 101,
+      "source_config": "configs/transformer_baseline.yaml",
+      "system": "C0"
+    },
+    {
+      "config_sha256": "e02da6788fbe93e791a4ad0e4ae2d4b50288f6a001950a8a558ea0039da111ba",
+      "engine_run_dir": "results/official_v1/transformer_seed101_amp1_pin0_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": false,
+        "pin_memory": false,
+        "prefetch_stream": false
+      },
+      "model": "transformer",
+      "resolved_config": "experiments/official_v1/configs/transformer_seed101_c1.yaml",
+      "run_id": "transformer_seed101_c1",
+      "seed": 101,
+      "source_config": "configs/transformer_baseline.yaml",
+      "system": "C1"
+    },
+    {
+      "config_sha256": "e1826ee40a65e0fd6fd36ed916673213876c5bbf7b2ace7f2b276f2e548dbb41",
+      "engine_run_dir": "results/official_v1/transformer_seed101_amp1_pin1_prefetch0_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": false
+      },
+      "model": "transformer",
+      "resolved_config": "experiments/official_v1/configs/transformer_seed101_c2.yaml",
+      "run_id": "transformer_seed101_c2",
+      "seed": 101,
+      "source_config": "configs/transformer_baseline.yaml",
+      "system": "C2"
+    },
+    {
+      "config_sha256": "7eaed17d565986b19fd45b772f972a261c520a01c68fd53981c7aa2b1bb73908",
+      "engine_run_dir": "results/official_v1/transformer_seed101_amp1_pin1_prefetch1_compile0",
+      "flags": {
+        "amp": true,
+        "compile": false,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "transformer",
+      "resolved_config": "experiments/official_v1/configs/transformer_seed101_c3.yaml",
+      "run_id": "transformer_seed101_c3",
+      "seed": 101,
+      "source_config": "configs/transformer_baseline.yaml",
+      "system": "C3"
+    },
+    {
+      "config_sha256": "ad9c3b577783b547250e4d5a582396d150bee32815b5e9fc1f589530c021b222",
+      "engine_run_dir": "results/official_v1/transformer_seed101_amp1_pin1_prefetch1_compile1",
+      "flags": {
+        "amp": true,
+        "compile": true,
+        "non_blocking_h2d": true,
+        "pin_memory": true,
+        "prefetch_stream": true
+      },
+      "model": "transformer",
+      "resolved_config": "experiments/official_v1/configs/transformer_seed101_c4.yaml",
+      "run_id": "transformer_seed101_c4",
+      "seed": 101,
+      "source_config": "configs/transformer_baseline.yaml",
+      "system": "C4"
+    }
+  ],
+  "schema_version": 1,
+  "seeds": [
+    17,
+    42,
+    101
+  ],
+  "systems": [
+    "C0",
+    "C1",
+    "C2",
+    "C3",
+    "C4"
+  ]
+}
