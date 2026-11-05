@@ -1,0 +1,41 @@
+# Git metadata
+.git
+.gitignore
+
+# Local virtual environments
+.venv
+venv
+.env
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+
+# Local build outputs
+build/
+dist/
+*.egg-info/
+*.so
+*.o
+
+# Dataset and generated experiments
+data/
+results/
+
+# Archived GPU evidence and local downloads
+local_gpu_artifacts/
+*.tar.gz
+
+# Local operating-system files
+.DS_Store
+
+# Editor files
+.vscode/
+.idea/
+
+# Repository reports are preserved in Git,
+# but not required inside the execution image.
+reports/

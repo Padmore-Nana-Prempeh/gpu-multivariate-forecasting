@@ -1,0 +1,1550 @@
+# Pre-18: Docker Environment Reproducibility and Validation
+
+## GPU-Accelerated Multivariate Forecasting
+
+**Milestone:** Pre-18 Docker Engineering
+
+**Status:** Local Linux AMD64 validation passed; NVIDIA GPU preflight pending
+
+**Target GPU:** NVIDIA A40
+
+**Target Architecture:** Linux AMD64
+
+**Base Operating System:** Ubuntu 24.04
+
+**CUDA Toolkit:** 12.8
+
+**PyTorch:** 2.8.0+cu128
+
+**Python:** 3.12.3
+
+**CUDA Compiler:** nvcc 12.8.93
+
+**Installed Python Packages:** 40
+
+**CPU-Safe Tests:** 26 passed
+
+**Official Experiment Configurations:** 60 verified
+
+**Official GPU Experiments Executed:** 0
+
+
+---
+
+# 1. Executive Summary
+
+The Pre-18 Docker milestone establishes a controlled software environment for the GPU-Accelerated Multivariate Forecasting project.
+
+The project previously completed development experiments on an NVIDIA A40, examining FP32, automatic mixed precision, pinned host memory, non-blocking transfers, CUDA prefetch streams, torch.compile, and a custom fused CUDA operator.
+
+Before beginning the official 60-run experiment campaign, the development environment needed to be reconstructed in a repeatable container.
+
+The environment has now been successfully built and validated locally.
+
+The Docker image contains:
+
+- Ubuntu 24.04.
+- Python 3.12.3.
+- PyTorch 2.8.0+cu128.
+- CUDA 12.8 development tools.
+- nvcc 12.8.93.
+- Forty version-pinned Python packages.
+- The gpuforecast Python package.
+- The frozen 60-run experiment configurations.
+- The failure-safe experiment runner.
+- CPU regression tests.
+- Recovered CUDA extension source files.
+
+The local validation established that:
+
+1. The Docker image builds for Linux AMD64.
+2. The archived Python, PyTorch, and CUDA toolchain versions match.
+3. All 40 installed Python package versions match the saved lock snapshot.
+4. Python dependency consistency checks pass.
+5. All 26 CPU-safe regression tests pass.
+6. The official 60-run experiment manifest validates.
+7. The default container command performs a dry-run without training.
+8. The ETTm1 dataset can be mounted read-only without changing its checksum.
+9. The local Docker image identity can be inspected and resolved by containers.
+
+These results establish local software compatibility and configuration reproducibility.
+
+They do not establish GPU execution correctness.
+
+NVIDIA A40 runtime validation remains a separate requirement before the official campaign.
+
+---
+
+# 2. Relationship to the Project Blueprint
+
+The project follows a learn-build-measure workflow.
+
+Earlier phases established the forecasting problem, data-processing contract, architectures, training engine, and GPU optimization configurations.
+
+Phases 15-17 focused on CUDA programming, fused LayerNorm+GELU implementation, and operator-level microbenchmarking.
+
+The original blueprint places Docker among the final reproducibility deliverables.
+
+However, the project deliberately moved Docker engineering ahead of the official 60-run campaign.
+
+This change reduces the risk of losing expensive GPU compute time because of environment problems.
+
+The updated progression is:
+
+```text
+Phases 0-8:
+Forecasting foundations and common training engine
+
+Phases 9-14:
+GPU development benchmarks and profiling
+
+Phase 15:
+CUDA programming foundations
+
+Phase 16:
+Fused LayerNorm + GELU forward kernel
+
+Phase 17:
+Archived kernel microbenchmark analysis
+
+Pre-18:
+Frozen experiment configurations
+Failure-safe runner
+Docker environment reproducibility
+
+Phase 18:
+Official 60-run GPU campaign
+
+Phase 19:
+Statistical aggregation and analysis
+
+Phase 20:
+Final documentation, CI, and portfolio
+```
+
+Docker preparation does not change the frozen experimental design.
+
+---
+
+# 3. Why Containerization Is Necessary
+
+A forecasting experiment depends on more than model source code.
+
+Its execution can be affected by:
+
+- Operating-system libraries.
+- Python version.
+- PyTorch version.
+- CUDA runtime.
+- CUDA compiler.
+- Numerical libraries.
+- Dependency versions.
+- GPU architecture.
+- NVIDIA driver.
+- Model configuration.
+- Dataset contents.
+- Random-number seeds.
+- Training and measurement protocols.
+
+Installing these components manually on each new GPU server creates opportunities for differences.
+
+A Dockerfile captures the required software environment as executable build instructions.
+
+The resulting image packages those instructions into a reusable software environment.
+
+Containerization therefore reduces setup variation and improves reproducibility.
+
+It does not guarantee bitwise-identical GPU results or identical timing on different hardware.
+
+---
+
+# 4. Dockerfile, Image, and Container
+
+Three concepts must be distinguished.
+
+## Dockerfile
+
+A Dockerfile describes how to construct a container image.
+
+It includes instructions such as:
+
+```dockerfile
+FROM
+ENV
+RUN
+COPY
+WORKDIR
+CMD
+```
+
+## Docker image
+
+An image contains the packaged software environment.
+
+It is constructed from layers generated by Dockerfile instructions.
+
+## Docker container
+
+A container is an instance of an image.
+
+A container runs processes using the packaged software environment.
+
+Multiple containers can be created from the same image.
+
+The image can remain unchanged while individual containers execute and exit.
+
+---
+
+# 5. Development Host and Target Hardware
+
+The local development computer is an Apple Silicon Mac.
+
+The local environment reported:
+
+```text
+Host architecture: arm64
+Host Python: 3.13.7
+Docker server OS: linux
+Docker server architecture: aarch64
+```
+
+The original GPU development environment was:
+
+```text
+GPU: NVIDIA A40
+GPU compute capability: 8.6
+Python: 3.12.3
+PyTorch: 2.8.0+cu128
+CUDA: 12.8
+nvcc: 12.8.93
+```
+
+These environments have different CPU architectures.
+
+The Docker image was therefore built using:
+
+```bash
+--platform linux/amd64
+```
+
+The AMD64 platform matches the target Linux A40 server architecture.
+
+On the ARM64 Mac, Docker can run compatible AMD64 images through emulation.
+
+This permits software validation without NVIDIA GPU hardware.
+
+It does not provide GPU execution on the Mac.
+
+---
+
+# 6. Docker Toolchain Verification
+
+The Docker environment reported:
+
+```text
+Docker Engine: 29.5.2
+Docker Buildx: v0.34.0-desktop.1
+BuildKit: v0.30.0
+Docker context: desktop-linux
+```
+
+The builder supported Linux AMD64.
+
+The following command confirmed builder capabilities:
+
+```bash
+docker buildx inspect --bootstrap
+```
+
+The project selected a Linux AMD64 image for the official GPU environment.
+
+---
+
+# 7. NVIDIA CUDA Base Image
+
+The selected base image is:
+
+```text
+nvidia/cuda:12.8.1-devel-ubuntu24.04
+```
+
+The development variant is important because the project contains C++/CUDA extension source files.
+
+These extensions require access to the CUDA compilation toolchain.
+
+The image uses the following registry manifest-list digest:
+
+```text
+sha256:520292dbb4f755fd360766059e62956e9379485d9e073bbd2f6e3c20c270ed66
+```
+
+The AMD64-specific manifest observed during inspection was:
+
+```text
+sha256:4b9ed5fa8361736996499f64ecebf25d4ec37ff56e4d11323ccde10aa36e0c43
+```
+
+Pinning the base-image manifest strengthens reproducibility by avoiding reliance on a mutable tag alone.
+
+The remainder of the operating-system package installation still requires additional attention for strict byte-level reproducibility.
+
+---
+
+# 8. Why a CUDA Development Image Was Selected
+
+NVIDIA provides CUDA runtime and development image variants.
+
+A runtime image supplies libraries required to execute compatible CUDA applications.
+
+A development image also includes tools needed to build CUDA applications.
+
+The forecasting project includes:
+
+```text
+cuda/phase15/
+cuda/fused_ln_gelu_a40/
+```
+
+These directories contain recovered CUDA extension source and build configurations.
+
+The development image enables compilation using nvcc.
+
+The selected base image is therefore appropriate for GPU-side extension validation.
+
+---
+
+# 9. Python Environment
+
+The Dockerfile installs Python and creates an isolated virtual environment.
+
+The virtual environment is located at:
+
+```text
+/opt/venv
+```
+
+The Dockerfile places its executables on the PATH.
+
+This separates project-level Python packages from the operating-system Python installation.
+
+The successfully built image reported:
+
+```text
+Python 3.12.3
+```
+
+This matches the Python patch version recorded in the archived A40 environment.
+
+---
+
+# 10. PyTorch CUDA Build
+
+The intended PyTorch version is:
+
+```text
+torch==2.8.0+cu128
+```
+
+The version suffix identifies the CUDA 12.8 build.
+
+The Dockerfile installs PyTorch using its CUDA 12.8 package index.
+
+The final installation command also makes the standard Python package index available for other dependencies while enforcing version constraints.
+
+The built image verified:
+
+```text
+PyTorch: 2.8.0+cu128
+CUDA runtime: 12.8
+```
+
+This matches the original GPU development environment.
+
+---
+
+# 11. CUDA Compiler Compatibility
+
+The Docker build ran:
+
+```bash
+nvcc --version
+```
+
+The recorded compiler version was:
+
+```text
+CUDA compilation tools, release 12.8
+V12.8.93
+```
+
+This matches the archived A40 compiler version.
+
+The container also defines:
+
+```text
+TORCH_CUDA_ARCH_LIST=8.6
+```
+
+Compute capability 8.6 corresponds to the NVIDIA A40.
+
+The environment is therefore configured for the intended CUDA compilation target.
+
+Actual kernel compilation and execution on NVIDIA hardware remain pending.
+
+---
+
+# 12. Direct Dependency Specification
+
+The project's direct container dependencies are preserved in:
+
+```text
+requirements/gpu-direct.txt
+```
+
+They include:
+
+```text
+numpy==1.26.4
+pandas==2.2.3
+PyYAML==6.0.3
+tqdm==4.67.1
+pytest==8.4.2
+ruff==0.14.2
+setuptools==75.8.2
+wheel==0.45.1
+```
+
+PyTorch is installed separately from the CUDA-specific index.
+
+Exact versions are specified to reduce dependency drift.
+
+The project's broader pyproject.toml continues to express general package compatibility requirements.
+
+The Docker environment uses additional constraints to enforce the validated package versions.
+
+---
+
+# 13. Initial Dependency Resolution
+
+Before constructing the full Docker image, the project used a temporary Python 3.12 Linux AMD64 container.
+
+The check used:
+
+```bash
+python -m pip install \
+  --dry-run \
+  --ignore-installed \
+  --report /tmp/gpu-dependencies.json \
+  -r /requirements/gpu-direct.txt
+```
+
+The dependency resolver successfully identified the required package versions.
+
+The temporary environment reported:
+
+```text
+Architecture: x86_64
+Python: 3.12.16
+Direct dependency resolution: passed
+```
+
+The PyTorch CUDA 12.8 index also listed the intended PyTorch build.
+
+This was a dependency-availability test.
+
+It was not a complete environment installation test.
+
+---
+
+# 14. First Full Docker Image
+
+The first image was built as:
+
+```text
+gpuforecast:pre18-local
+```
+
+The image used Linux AMD64, Python 3.12, CUDA 12.8, and PyTorch 2.8.0+cu128.
+
+The build completed successfully.
+
+Its internal checks verified:
+
+```text
+Python 3.12.3
+PyTorch 2.8.0+cu128
+CUDA runtime 12.8
+nvcc 12.8.93
+pip check: passed
+```
+
+This provided a known-working reference environment.
+
+---
+
+# 15. First Image Regression Validation
+
+The first image was executed locally on the ARM64 Mac using Linux AMD64 emulation.
+
+The project ran:
+
+```bash
+python -m pytest -q
+```
+
+The result was:
+
+```text
+26 passed
+2 warnings
+```
+
+The warnings were emitted by PyTorch's Transformer module.
+
+They indicated that a nested-tensor optimization was disabled when the encoder layer used norm_first=True.
+
+The warnings did not cause any tests to fail.
+
+The project preserved the existing Transformer configuration rather than modifying the architecture to eliminate informational warnings.
+
+---
+
+# 16. The Complete Dependency Snapshot
+
+Following the successful first image build, the project exported its installed Python package versions.
+
+The resulting file is:
+
+```text
+requirements/gpu-resolved.lock
+```
+
+The file contains:
+
+```text
+40 package-version entries
+```
+
+All entries use explicit version equality constraints.
+
+The snapshot includes:
+
+```text
+torch==2.8.0+cu128
+triton==3.4.0
+```
+
+It also includes the NVIDIA CUDA Python distributions installed through PyTorch's dependency requirements.
+
+The file was generated from the successfully built Linux AMD64 environment.
+
+This avoids guessing which transitive dependency versions should be selected.
+
+---
+
+# 17. Difference Between Direct and Transitive Dependencies
+
+A direct dependency is a package explicitly requested by the project.
+
+A transitive dependency is required by another installed package.
+
+For example, PyTorch requires additional libraries for its supported execution environment.
+
+Those libraries may include:
+
+- NVIDIA CUDA runtime components.
+- NVIDIA cuBLAS.
+- NVIDIA cuDNN.
+- NVIDIA cuFFT.
+- NVIDIA cuSOLVER.
+- NVIDIA cuSPARSE.
+- NVIDIA NCCL.
+- Triton.
+- Supporting Python packages.
+
+A direct dependency file alone may permit future resolver changes.
+
+Preserving the resolved dependency versions makes the software environment more controlled.
+
+---
+
+# 18. The First Locked Build Failure
+
+The first attempt to enforce the complete lock failed during PyTorch installation.
+
+The error reported a dependency-resolution conflict involving:
+
+```text
+torch==2.8.0+cu128
+setuptools==75.8.2
+```
+
+The installation had been configured to use the CUDA wheel index as the replacement package index.
+
+The error demonstrated that a version constraint is not sufficient unless the installer can also retrieve an acceptable distribution.
+
+The project did not respond by deleting the lock or loosening the package versions.
+
+Instead, it corrected the package-index configuration.
+
+---
+
+# 19. Dependency Repository Correction
+
+The corrected PyTorch installation command made both package repositories available:
+
+```dockerfile
+RUN python -m pip install --no-cache-dir \
+    --constraint /opt/requirements/gpu-resolved.lock \
+    "torch==2.8.0+cu128" \
+    --index-url https://pypi.org/simple \
+    --extra-index-url https://download.pytorch.org/whl/cu128
+```
+
+The exact CUDA-enabled PyTorch build remained explicitly requested.
+
+The recorded dependency constraints also remained unchanged.
+
+The corrected image build succeeded.
+
+This demonstrates that the package retrieval configuration was part of the reproducibility problem.
+
+It does not establish hash-level integrity for every downloaded distribution.
+
+---
+
+# 20. Purpose of a Constraints File
+
+The Dockerfile applies the resolved lock through:
+
+```bash
+--constraint /opt/requirements/gpu-resolved.lock
+```
+
+A pip constraints file restricts which package versions the resolver may choose.
+
+It does not automatically install every package listed in the file.
+
+The Dockerfile therefore installs the required packages and separately verifies that the resulting environment matches the complete lock snapshot.
+
+This distinction is important.
+
+The project does not rely on the constraints file alone to establish an exact environment match.
+
+---
+
+# 21. Independent Environment Verifier
+
+The repository contains:
+
+```text
+scripts/verify_gpu_environment.py
+```
+
+The verifier reads the complete lock snapshot.
+
+It compares that snapshot with the actual installed Python distributions.
+
+It checks for:
+
+```text
+Missing packages
+Unexpected packages
+Version mismatches
+```
+
+It additionally validates the expected PyTorch CUDA build.
+
+The verifier can run without an NVIDIA GPU.
+
+This allows environment compatibility to be checked during Docker image construction.
+
+---
+
+# 22. Locked Image Construction
+
+The final validated local image was built using:
+
+```bash
+docker buildx build \
+  --platform linux/amd64 \
+  --load \
+  --progress=plain \
+  -t gpuforecast:pre18-locked \
+  -f Dockerfile \
+  .
+```
+
+The build completed successfully.
+
+The Dockerfile executed its dependency installation and verification steps.
+
+The image was loaded into the local Docker image store.
+
+---
+
+# 23. Locked Environment Verification
+
+During the locked image build, the environment verifier reported:
+
+```text
+PASS: 40 packages match exactly.
+PASS: No missing packages.
+PASS: No unexpected packages.
+PASS: No version mismatches.
+PASS: Python 3.12.3
+PASS: PyTorch 2.8.0+cu128
+PASS: CUDA runtime 12.8
+```
+
+The build also confirmed:
+
+```text
+nvcc 12.8.93
+pip check: no broken requirements
+```
+
+This establishes that the second image reproduced the validated installed package-version set.
+
+The result is stronger than a Dockerfile that merely declares package requirements.
+
+---
+
+# 24. Final Local Docker Image Identity
+
+The locally validated image is:
+
+```text
+gpuforecast:pre18-locked
+```
+
+The image store reported the local manifest-list digest:
+
+```text
+sha256:9b5b9d135c4ddd16c4df4b045a87836428b7ab3fe58b5992cc4ab419483d6d1d
+```
+
+The image platform was verified as:
+
+```text
+OS: linux
+Architecture: amd64
+```
+
+The Docker image listing reported an approximately:
+
+```text
+25.9 GB virtual image size
+```
+
+This is the reported virtual image size, not a measurement of incremental host disk consumption.
+
+The initial source revision recorded during validation was:
+
+```text
+0dc2d2af92aba8b3c90fa30bb138f893729af571
+```
+
+At that point, the Docker-specific files were still uncommitted.
+
+The Docker Git milestone will record the final recipe and dependency files.
+
+---
+
+# 25. Container Image Identity Verification
+
+The image identity was inspected using:
+
+```bash
+docker inspect --type=image \
+  --format 'ID={{.Id}} OS={{.Os}} ARCH={{.Architecture}}' \
+  gpuforecast:pre18-locked
+```
+
+The observed result was:
+
+```text
+ID=sha256:9b5b9d135c4ddd16c4df4b045a87836428b7ab3fe58b5992cc4ab419483d6d1d
+OS=linux
+ARCH=amd64
+```
+
+A new container was created without starting its program.
+
+Inspection of that container returned the same image identity.
+
+This confirmed that the registered image could be resolved consistently by Docker.
+
+A previous image-inspection error was not reproduced during the final checks.
+
+---
+
+# 26. Local Image Identity Versus Registry Identity
+
+The validated image currently exists in the local Docker image store.
+
+Its local identity should not be described as a published registry digest.
+
+Before RunPod can use this image, the project must either:
+
+- Publish it to a container registry and verify the resulting registry digest.
+- Transfer a compatible saved image to the target machine.
+- Rebuild the image on an appropriate Linux AMD64 machine from the frozen source.
+
+The final GPU campaign must record the actual image identity used on the NVIDIA server.
+
+A local image tag alone is not sufficient as a permanent experiment identifier.
+
+---
+
+# 27. Dataset Reproducibility
+
+The project uses the ETTm1 forecasting dataset.
+
+The data contract is:
+
+```text
+Lookback: 96 time steps
+Forecast horizon: 24 time steps
+Variables: 7
+```
+
+The recorded ETTm1 file SHA-256 is:
+
+```text
+6ce1759b1a18e3328421d5d75fadcb316c449fcd7cec32820c8dafda71986c9e
+```
+
+The same checksum was observed inside the Docker container after mounting the dataset.
+
+Therefore the mounted data file matched the host file byte for byte.
+
+This is a file-integrity check.
+
+It does not by itself establish the absence of temporal leakage, which is separately addressed by the project's data tests and preprocessing contract.
+
+---
+
+# 28. Dataset Storage Strategy
+
+The Docker image deliberately does not include:
+
+```text
+data/ETTm1.csv
+```
+
+The dataset is supplied through an external mount.
+
+A typical local test uses:
+
+```bash
+-v "$PWD/data:/workspace/data:ro"
+```
+
+The `ro` option mounts the dataset read-only.
+
+This makes the data available without baking it into the container image.
+
+The official GPU environment will use the same principle.
+
+The experiment must verify the dataset checksum before launching the campaign.
+
+---
+
+# 29. Result Persistence
+
+The Docker image also excludes generated result directories.
+
+This protects experiment artifacts from accidental loss when a container is deleted.
+
+During official execution, the results directory must be mounted onto persistent host or network storage.
+
+The required container path is:
+
+```text
+/workspace/results
+```
+
+A GPU instance must not rely solely on the container's temporary writable filesystem for completed experiments.
+
+Checkpoint files, logs, metrics, status files, and archived failed attempts must survive container restarts and replacement.
+
+Persistent storage must be validated before the campaign.
+
+---
+
+# 30. Docker Ignore Configuration
+
+The repository includes:
+
+```text
+.dockerignore
+```
+
+It excludes files that should not be sent into the Docker build context.
+
+Examples include:
+
+```text
+.git
+.venv
+Python caches
+Local build artifacts
+Datasets
+Results
+Archived GPU downloads
+Large compressed archives
+Editor metadata
+Reports
+```
+
+Excluding these files reduces unnecessary build context and prevents accidental inclusion of local experimental data.
+
+The Dockerfile explicitly copies the source, configuration, scripts, CUDA extension directories, and test code that are needed inside the image.
+
+---
+
+# 31. Package Installation Strategy
+
+The container uses:
+
+```text
+/opt/venv
+```
+
+for its Python environment.
+
+The Dockerfile installs PyTorch from the CUDA-capable package index.
+
+It then installs the direct project dependencies under the saved constraints.
+
+Finally, it installs the gpuforecast package in editable mode without dependency replacement.
+
+The relevant installation flags include:
+
+```text
+--no-deps
+--no-build-isolation
+-e .
+```
+
+The environment is then checked using:
+
+```bash
+python -m pip check
+```
+
+and:
+
+```bash
+python scripts/verify_gpu_environment.py \
+  /opt/requirements/gpu-resolved.lock
+```
+
+The independent verifier ensures that the installed package versions match the previously validated snapshot.
+
+---
+
+# 32. CPU Regression Test Results
+
+The locked Docker image executed:
+
+```bash
+python -m pytest -q
+```
+
+The observed result was:
+
+```text
+26 passed
+2 warnings
+```
+
+The warnings originated from PyTorch's Transformer nested-tensor configuration.
+
+They did not cause test failures.
+
+These tests confirm supported CPU-side behavior covered by the current test suite.
+
+They do not substitute for CUDA kernel correctness tests or complete GPU training preflight.
+
+---
+
+# 33. Official Experiment Manifest Validation
+
+The locked image executed:
+
+```bash
+python scripts/verify_matrix.py
+```
+
+The validator confirmed:
+
+```text
+60 exact model/seed/system combinations
+60 unique run identifiers
+60 unique output directories
+Matching configuration hashes
+Preserved model architectures
+Preserved data settings
+Preserved training settings
+Correct C0-C4 flags
+Explicit CUDA device selection
+15 experiments per model
+12 experiments per execution configuration
+```
+
+No training was launched.
+
+This verifies that the container contains the official experiment plan.
+
+---
+
+# 34. The Official 60-Run Campaign
+
+The official benchmark design remains:
+
+```text
+4 architectures
+×
+3 seeds
+×
+5 execution configurations
+=
+60 runs
+```
+
+Architectures:
+
+```text
+LSTM
+GRU
+TCN
+Transformer
+```
+
+Seeds:
+
+```text
+17
+42
+101
+```
+
+The five execution configurations are:
+
+| Configuration | AMP | Pinned memory | Non-blocking H2D | Prefetch | Compile |
+|---|---|---|---|---|---|
+| C0 | Off | Off | Off | Off | Off |
+| C1 | On | Off | Off | Off | Off |
+| C2 | On | On | On | Off | Off |
+| C3 | On | On | On | On | Off |
+| C4 | On | On | On | On | On |
+
+The model architecture is held constant across the five execution configurations for each model.
+
+The campaign does not include the separate fused CUDA operator microbenchmark as an additional execution configuration.
+
+---
+
+# 35. Default Container Safety Behavior
+
+The Dockerfile defines:
+
+```dockerfile
+CMD ["python", "scripts/run_official_matrix.py"]
+```
+
+The official runner defaults to dry-run mode.
+
+Local validation observed:
+
+```text
+pending: 60
+completed: 0
+incomplete: 0
+
+NO TRAINING WAS LAUNCHED.
+```
+
+Actual execution requires explicit authorization and compatible NVIDIA GPU hardware.
+
+This reduces the risk of unintentionally starting expensive experiments when checking the image.
+
+---
+
+# 36. Failure-Safe Runner
+
+The project preserves:
+
+```text
+scripts/run_official_matrix.py
+```
+
+The runner reads the frozen manifest.
+
+It supports:
+
+- Dry-run mode.
+- Individual run selection.
+- Completed-run detection.
+- Preservation of incomplete attempts.
+- Explicit retries with attempt archiving.
+- Configuration verification.
+- Experiment-status recording.
+- stdout and stderr capture.
+- Basic concurrency protection using a file lock.
+
+The runner's nine dedicated offline safety tests passed during earlier development.
+
+The complete container test suite also passed.
+
+GPU-level execution and recovery behavior remain subject to final preflight validation.
+
+---
+
+# 37. The Importance of Container Mounts
+
+Three types of content must be treated differently.
+
+## Image-contained source
+
+The Docker image contains the versioned training code, configs, runner, tests, and extension source.
+
+## Read-only experimental input
+
+The ETTm1 dataset should be mounted read-only.
+
+## Persistent experimental output
+
+The results directory must be mounted read-write onto persistent storage.
+
+This separation helps maintain a clear boundary between source code, input data, and generated evidence.
+
+It is also important for safe retries and container replacement.
+
+---
+
+# 38. CUDA Runtime Boundary
+
+The locked image includes CUDA-compatible software.
+
+However, the local Mac does not provide the NVIDIA A40.
+
+The local test reported:
+
+```text
+torch.cuda.is_available() == False
+```
+
+This is expected under the local environment.
+
+The image has not yet demonstrated:
+
+- NVIDIA driver access.
+- Successful CUDA tensor execution.
+- Successful compilation and import of the recovered CUDA extensions.
+- CUDA stream correctness under real GPU execution.
+- Actual performance of torch.compile on the A40.
+- Full GPU training and validation runs.
+
+These are separate GPU preflight requirements.
+
+---
+
+# 39. CUDA Extension Validation Plan
+
+The recovered CUDA extension source is available inside the image.
+
+The A40 preflight must verify both extension tracks.
+
+## Phase 15 extension
+
+Validate the original scale-by-two CUDA extension and its numerical test harness.
+
+The suite contains 27 planned GPU test cases.
+
+The test script previously passed syntax validation, but the complete CUDA suite must be executed on an NVIDIA GPU.
+
+## Phase 16 extension
+
+Build the recovered fused LayerNorm+GELU extension.
+
+Compare it with the corresponding PyTorch eager implementation using:
+
+```text
+FP32 tensors
+Identical shape
+Identical affine parameters
+Identical epsilon
+Tanh-approximate GELU
+```
+
+Use explicit numerical assertions and supported edge-case tests.
+
+Record any unsupported inputs clearly.
+
+---
+
+# 40. Phase 17 Microbenchmark Revalidation
+
+The historical Phase 17 benchmark recorded:
+
+| Shape | Median forward speedup |
+|---|---:|
+| 4096 × 92 | 1.552408× |
+| 24576 × 92 | 1.254539× |
+| 4096 × 127 | 3.385848× |
+| 4096 × 256 | 1.524362× |
+
+These are archived NVIDIA A40 forward-operator measurements.
+
+The original results must remain unchanged.
+
+Any future benchmark under the Docker environment should be stored separately.
+
+The current fused extension is forward-only and has no validated custom backward implementation.
+
+Therefore these results must not be described as complete Transformer training improvements.
+
+---
+
+# 41. torch.compile Preflight
+
+The official C4 configuration includes:
+
+```text
+AMP
+Pinned memory
+Non-blocking transfers
+CUDA prefetch stream
+torch.compile
+```
+
+Earlier development showed that compilation could produce different performance results depending on the execution path.
+
+The final Docker GPU preflight should verify:
+
+- The model compiles under the packaged environment.
+- Training and evaluation execute.
+- The selected checkpoint can be restored.
+- The run produces the expected artifacts.
+- Compilation does not silently change model correctness.
+- Any graph breaks or fallback behavior are recorded.
+
+A successful container build alone does not validate torch.compile during GPU training.
+
+---
+
+# 42. Reproducibility Limitations
+
+The Docker environment is substantially more controlled than the original manual setup.
+
+However, several limitations remain.
+
+## Python packages
+
+The lock records exact versions, but does not include wheel hashes for every dependency.
+
+## Operating-system packages
+
+Packages installed through apt-get are not individually frozen to exact package versions or repository snapshots.
+
+## Multi-index package installation
+
+Dependency retrieval uses the standard Python package index alongside the PyTorch CUDA wheel index.
+
+Future distribution availability or index behavior may change.
+
+## Local image identity
+
+The image has been validated locally, but is not yet published under a persistent registry reference.
+
+## NVIDIA driver
+
+The driver remains outside the Docker image and must be verified on the GPU host.
+
+## GPU performance
+
+Equivalent software does not guarantee identical execution latency across hardware, drivers, or machine conditions.
+
+## Dataset evaluation history
+
+Earlier development used test metrics during iteration.
+
+The final study must acknowledge that history and apply the predeclared official comparison protocol.
+
+These limitations should remain visible in final project documentation.
+
+---
+
+# 43. Future Improvements to the Environment Freeze
+
+Possible improvements include:
+
+- Hash-verified Python dependency locking.
+- Pinned OS package snapshots.
+- A published container-registry digest.
+- Automated image provenance generation.
+- CI tests of the Docker build.
+- A dedicated GPU smoke-test command.
+- Separate development and production image variants.
+- Reproducible container builds from a Git release tag.
+- Independent rebuild comparison.
+- Artifact-integrity verification after storage transfer.
+
+These improvements are distinct from the local validation already completed.
+
+---
+
+# 44. Local Verification Commands
+
+The Dockerfile can be statically checked using:
+
+```bash
+docker buildx build \
+  --check \
+  --platform linux/amd64 \
+  -f Dockerfile \
+  .
+```
+
+The locked image can be built using:
+
+```bash
+docker buildx build \
+  --platform linux/amd64 \
+  --load \
+  --progress=plain \
+  -t gpuforecast:pre18-locked \
+  -f Dockerfile \
+  .
+```
+
+The installed environment can be checked using:
+
+```bash
+docker run --rm \
+  --platform linux/amd64 \
+  --entrypoint python \
+  gpuforecast:pre18-locked \
+  scripts/verify_gpu_environment.py \
+  /opt/requirements/gpu-resolved.lock
+```
+
+The CPU regression tests can be run using:
+
+```bash
+docker run --rm \
+  --platform linux/amd64 \
+  --entrypoint python \
+  gpuforecast:pre18-locked \
+  -m pytest -q
+```
+
+The official experiment plan can be verified using:
+
+```bash
+docker run --rm \
+  --platform linux/amd64 \
+  --entrypoint python \
+  gpuforecast:pre18-locked \
+  scripts/verify_matrix.py
+```
+
+The default safe dry-run can be executed using:
+
+```bash
+docker run --rm \
+  --platform linux/amd64 \
+  gpuforecast:pre18-locked
+```
+
+None of these commands launches the official 60 GPU experiments.
+
+---
+
+# 45. Evidence Artifacts
+
+The relevant version-controlled files are:
+
+```text
+Dockerfile
+.dockerignore
+requirements/gpu-direct.txt
+requirements/gpu-resolved.lock
+scripts/verify_gpu_environment.py
+reports/pre18_docker_reproducibility.md
+reports/evidence/pre18/image_provenance.txt
+reports/evidence/pre18/docker_validation.log
+```
+
+Existing experiment infrastructure includes:
+
+```text
+experiments/official_v1/manifest.json
+experiments/official_v1/configs/
+scripts/plan_matrix.py
+scripts/verify_matrix.py
+scripts/run_official_matrix.py
+tests/test_official_runner.py
+```
+
+The historical CUDA development evidence remains in the earlier phase reports.
+
+---
+
+# 46. Required NVIDIA A40 Preflight
+
+Before executing Phase 18, the project must:
+
+1. Make the validated image available to the A40 host.
+2. Record the exact image identity used there.
+3. Confirm NVIDIA driver and device visibility.
+4. Confirm CUDA tensors can execute successfully.
+5. Verify the mounted ETTm1 checksum.
+6. Confirm persistent results-directory write access.
+7. Compile and test the recovered CUDA extensions.
+8. Validate the CUDA prefetch path.
+9. Validate AMP execution and gradient scaling.
+10. Validate the torch.compile execution path.
+11. Run short training smoke tests outside official result directories.
+12. Verify checkpoint restoration and evaluation.
+13. Confirm the 60-run manifest and dry-run output.
+14. Verify failure recovery without risking official results.
+15. Establish the final environment provenance record.
+
+Only after these checks pass should the official campaign be authorized.
+
+---
+
+# 47. Official Campaign Release Gate
+
+The campaign must not begin merely because the Docker image exists.
+
+Its release gate requires:
+
+```text
+Frozen configuration manifest
+Validated failure-safe runner
+Verified dataset identity
+Version-controlled Dockerfile
+Validated package environment
+Recorded container image identity
+Compatible NVIDIA host driver
+Passing CUDA correctness tests
+Passing model smoke tests
+Persistent result storage
+Safe runner dry-run
+```
+
+The complete experiment matrix remains:
+
+```text
+4 models × 3 seeds × 5 configurations = 60 runs
+```
+
+Development runs, profiler runs, CUDA microbenchmarks, and GPU preflight runs do not count toward these 60 experiments.
+
+---
+
+# 48. Engineering Lessons
+
+This milestone demonstrates several important engineering principles.
+
+A working Python project is not necessarily a reproducible experiment.
+
+A Dockerfile that passes static checks is not necessarily a working image.
+
+A working image is not necessarily a fully locked environment.
+
+Exact package versions are not useful unless the package resolver can retrieve compatible distributions.
+
+GPU-ready software does not guarantee GPU execution without compatible physical hardware and host drivers.
+
+A good container separates immutable software, read-only input data, and persistent output artifacts.
+
+Performance measurements must remain tied to their source, environment, workload, and hardware.
+
+Most importantly, environment reproducibility should be established before starting expensive experiments.
+
+---
+
+# 49. Technical Interview Explanation
+
+A concise explanation of this milestone is:
+
+> Before launching a controlled 60-run multivariate forecasting benchmark, I containerized the complete experiment environment using an NVIDIA CUDA development image targeting Linux AMD64. I reproduced the original A40 development software versions, including Python 3.12.3, PyTorch 2.8.0 with CUDA 12.8, and nvcc 12.8.93. I exported and enforced a 40-package dependency snapshot, built the image on an Apple Silicon Mac, and independently verified that all package versions matched. The container passed 26 CPU regression tests, validated all 60 experiment configurations, and executed the official runner in safe dry-run mode. I also verified the ETTm1 dataset checksum through a read-only mount. GPU execution remains a separate validation gate before the official campaign.
+
+This description is supported by the recorded local evidence.
+
+It does not claim GPU performance improvements from Docker.
+
+---
+
+# 50. Final Conclusion
+
+The Pre-18 Docker engineering stage successfully produced a locally validated Linux AMD64 software environment for the GPU-Accelerated Multivariate Forecasting project.
+
+The locked image reproduced the archived development software versions:
+
+```text
+Python 3.12.3
+PyTorch 2.8.0+cu128
+CUDA 12.8
+nvcc 12.8.93
+```
+
+It verified:
+
+```text
+40 matching Python packages
+26 passing CPU regression tests
+60 valid planned experiments
+No missing or unexpected dependencies
+No broken Python package requirements
+Matching mounted dataset checksum
+Safe default dry-run behavior
+```
+
+The local image identity was successfully recorded and independently confirmed through container inspection.
+
+The environment is ready for the next engineering stage: distribution to an NVIDIA A40 host and physical GPU validation.
+
+It is not yet appropriate to claim complete hardware-independent reproducibility, GPU runtime correctness, or completed official benchmark results.
+
+
+
+**Pre-18 local Docker build and environment validation: COMPLETE.**
+
+**Pre-18 NVIDIA A40 preflight: PENDING.**
+
+**Phase 18 official 60-run campaign: NOT STARTED.**
+
+---
+
+## Evidence Capture Reconciliation
+
+The first automated image-provenance capture encountered an intermittent
+Docker image-inspection error. The incomplete initial capture was
+preserved separately.
+
+A subsequent verification used the local image registry and a
+container-resolved image identity check.
+
+The locked image was confirmed as:
+
+`sha256:9b5b9d135c4ddd16c4df4b045a87836428b7ab3fe58b5992cc4ab419483d6d1d`
+
+The verified evidence is stored in:
+
+`reports/evidence/pre18/image_provenance.txt`
+
+The original incomplete attempt is preserved in:
+
+`reports/evidence/pre18/image_provenance_initial.txt`
+
+This digest identifies the validated local Docker image. It does not
+represent a published registry digest.
+
+GPU execution validation remains pending.

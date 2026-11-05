@@ -1,0 +1,24 @@
+PRE-18 DOCKER IMAGE PROVENANCE
+Recorded UTC: 2026-11-05T23:30:05Z
+
+========== SOURCE COMMIT ==========
+0dc2d2af92aba8b3c90fa30bb138f893729af571
+
+========== DOCKER CONTEXT ==========
+desktop-linux
+
+========== IMAGE REGISTRY ==========
+REPOSITORY    TAG            DIGEST                                                                    IMAGE ID                                                                  CREATED             SIZE
+gpuforecast   pre18-locked   sha256:9b5b9d135c4ddd16c4df4b045a87836428b7ab3fe58b5992cc4ab419483d6d1d   sha256:9b5b9d135c4ddd16c4df4b045a87836428b7ab3fe58b5992cc4ab419483d6d1d   About an hour ago   25.9GB
+
+========== CONTAINER-RESOLVED IMAGE ==========
+IMAGE_ID=sha256:9b5b9d135c4ddd16c4df4b045a87836428b7ab3fe58b5992cc4ab419483d6d1d IMAGE_REF=gpuforecast:pre18-locked
+PASS: Locked image identity verified.
+
+========== CHECKSUMS ==========
+01fac37be1a280b23713a1fcd31efbe2e03be652bdd5024164cbc8317363b76e  requirements/gpu-resolved.lock
+4c0c9eda81a4e618b47557d3b8acc1a54d8db1510155c7ab4c5e4f9fcc4d2439  requirements/gpu-direct.txt
+6ce1759b1a18e3328421d5d75fadcb316c449fcd7cec32820c8dafda71986c9e  data/ETTm1.csv
+
+========== CONTAINER DATASET CHECKSUM ==========
+6ce1759b1a18e3328421d5d75fadcb316c449fcd7cec32820c8dafda71986c9e  data/ETTm1.csv

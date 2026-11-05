@@ -1,0 +1,15 @@
+# GPU forecasting environment: direct dependency pins.
+# Target: Linux AMD64, Python 3.12, PyTorch 2.8.0+cu128.
+#
+# PyTorch is installed separately from its CUDA 12.8 index.
+
+numpy==1.26.4
+pandas==2.2.3
+PyYAML==6.0.3
+tqdm==4.67.1
+
+# Tests, code quality, and extension build tools
+pytest==8.4.2
+ruff==0.14.2
+setuptools==75.8.2
+wheel==0.45.1
