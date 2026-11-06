@@ -1,15 +1,15 @@
 Name:      ghcr.io/padmore-nana-prempeh/gpu-multivariate-forecasting:pre18-ea2c8f9
 MediaType: application/vnd.oci.image.index.v1+json
 Digest:    sha256:9b5b9d135c4ddd16c4df4b045a87836428b7ab3fe58b5992cc4ab419483d6d1d
-           
-Manifests: 
+
+Manifests:
   Name:        ghcr.io/padmore-nana-prempeh/gpu-multivariate-forecasting:pre18-ea2c8f9@sha256:589cb1cd2bacbee1e539cc091ef0de08faba6d635d2feedd5044adefa3766db9
   MediaType:   application/vnd.oci.image.manifest.v1+json
   Platform:    linux/amd64
-               
+
   Name:        ghcr.io/padmore-nana-prempeh/gpu-multivariate-forecasting:pre18-ea2c8f9@sha256:ed186bb1afd3e961c71c561facd6af9806dde07229f81a23ed7b0d09882fc8d9
   MediaType:   application/vnd.oci.image.manifest.v1+json
   Platform:    unknown/unknown
-  Annotations: 
+  Annotations:
     vnd.docker.reference.digest: sha256:589cb1cd2bacbee1e539cc091ef0de08faba6d635d2feedd5044adefa3766db9
     vnd.docker.reference.type:   attestation-manifest
