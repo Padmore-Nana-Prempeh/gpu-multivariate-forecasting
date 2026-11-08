@@ -20,3 +20,6 @@ data/*
 .DS_store
 # Local GPU benchmark artifacts
 local_gpu_artifacts/
+/backups/
+/analysis/phase18/results/
+/analysis/phase18/__pycache__/

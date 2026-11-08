@@ -1,0 +1,9 @@
+PASS: 60/60 run records, 60 checkpoints, 1,200 epochs, all complete
+PASS: All models/seeds/configurations are present exactly once
+PASS: batch_size=256, num_workers=0, epochs=20 in every saved config
+PASS: All 48 adjacent configuration comparisons change only intended flags
+PASS: C1->C2 modifies ONLY data.pin_memory and train.non_blocking_h2d
+PASS: C1/C2/C3 match exactly on test metrics and 20-epoch losses/val RMSE
+NOTE: Correctness equality alone does not prove the transfer/compile path ran as intended
+NOTE: TF32 flags and torch.compile graph breaks cannot be established from these records
+NOTE: C2 slowdown is an OBSERVATION; pinning's independent causal effect is unidentified
