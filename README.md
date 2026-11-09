@@ -1,204 +1,185 @@
-# GPU-Accelerated Deep Learning for Multivariate Forecasting
+# GPU-Accelerated Multivariate Forecasting
 
-A reproducible systems + modeling project that benchmarks **LSTM, GRU, TCN, and Transformer** forecasters under controlled GPU configurations, then profiles and optimizes the training path with AMP, pinned memory, asynchronous H2D copies, CUDA streams, Nsight Systems, and a custom fused CUDA LayerNorm+GELU kernel.
+**A reproducible NVIDIA A40 study of forecasting accuracy, GPU memory use, and training throughput.**
 
-> **Integrity rule:** performance numbers are not hard-coded project claims. `results/` is generated from actual runs on the target GPU. Resume bullets should be updated only after the benchmark report confirms them.
+This project implements and compares four deep-learning architectures for multivariate time-series forecasting: **LSTM, GRU, TCN, and Transformer**. Beyond model accuracy, it investigates what happens when a PyTorch training pipeline uses automatic mixed precision (AMP), pinned host memory, nonblocking host-to-device transfers, CUDA prefetching, and `torch.compile`.
 
-## Benchmark question
+**Study status: complete.** All **60 official A40 training runs** finished successfully, and the saved configurations, metrics, checkpoints, and epoch histories passed an offline integrity audit. The findings are reported as measured, including a substantial throughput regression in the more heavily optimized configurations.
 
-How much forecasting accuracy and systems performance do we gain from model choice and GPU optimization when the dataset, splits, windows, seeds, optimizer, and metrics are controlled?
+**[Read the final research report](reports/phase19_final_report.md)** · **[Explore the results tables](analysis/phase18/tables/)** · **[View the frozen experiment manifest](experiments/official_v1/manifest.json)**
 
-## Dataset
+## Results at a glance
 
-The starter benchmark uses **ETTm1**, a 15-minute electricity-transformer time-series dataset with six load variables plus oil temperature (`OT`). The loader selects all numeric columns and performs train-only standardization to avoid leakage.
+| Measure | Verified outcome |
+|---|---|
+| Experimental design | **4 models × 3 seeds × 5 CUDA configurations = 60 runs** |
+| Training | 20 epochs per run; 1,200 epoch records |
+| Hardware | NVIDIA A40 (48 GB), PyTorch 2.8.0+cu128, CUDA 12.8 |
+| Best mean test RMSE | **2.3791 ± 0.0142**, Transformer C4 |
+| Versus best recurrent model | **13.96% lower mean RMSE** than GRU C0 (descriptive comparison) |
+| C0 → C1 peak allocated GPU memory | **42.5%–53.9% lower** across the four models |
+| C2 versus C1 throughput | **0.241×–0.310×** across models; cause not yet isolated |
+| Data integrity | 60 checkpoints and all 48 adjacent configuration comparisons verified |
 
-Default task:
-- Input window: 96 timesteps (24 hours)
-- Forecast horizon: 24 timesteps (6 hours)
-- Mode: multivariate -> multivariate
-- Split: 70% train / 10% validation / 20% test, chronological
-- Metrics: RMSE, MAE, MSE on the original feature scale
+### Forecasting accuracy
 
-## Experiment matrix: exactly 60 controlled training runs
+Mean ± sample standard deviation of **test RMSE** across seeds **17, 42, and 101**, evaluated after inverse-transforming predictions to the original data scale. Lower is better.
 
-Four architectures × three seeds × five execution configurations:
+| Architecture | C0: FP32 | C4: full execution stack | Best configuration |
+|---|---:|---:|---|
+| LSTM | **2.8717 ± 0.1189** | 2.9388 ± 0.1521 | C0 |
+| GRU | **2.7651 ± 0.0884** | 2.7665 ± 0.0907 | C0 |
+| TCN | 2.4684 ± 0.0441 | **2.4460 ± 0.0222** | C4 |
+| Transformer | 2.4281 ± 0.0359 | **2.3791 ± 0.0142** | C4 |
 
-| Configuration | FP32 | AMP | Pinned memory | CUDA prefetch stream | `torch.compile` |
-|---|---:|---:|---:|---:|---:|
-| fp32 | ✓ | | | | |
-| amp | | ✓ | | | |
-| amp_pin | | ✓ | ✓ | | |
-| amp_pin_prefetch | | ✓ | ✓ | ✓ | |
-| amp_pin_prefetch_compile | | ✓ | ✓ | ✓ | ✓ |
+The **Transformer C4** configuration achieved the lowest mean test RMSE in the study. Its 13.96% advantage over the best recurrent configuration is a **descriptive result**, not a statistical-significance claim; each configuration was evaluated using only three seeds. Model/configuration selection based on test results should be viewed as exploratory.
 
-Architectures: LSTM, GRU, TCN, Transformer. Seeds: 17, 42, 101.
+### Systems performance: memory savings, but no end-to-end speedup
 
-## Repository layout
+The table reports the geometric mean of **matched-seed training-throughput ratios** relative to C0, computed using epochs **2–20** (higher is better). Memory reductions compare C1 with C0, using peak **PyTorch allocated** GPU memory, not total device occupancy.
 
-```text
-configs/base.yaml               core experiment settings
-scripts/download_ett.sh         reproducible dataset download
-scripts/run_matrix.py           60-run controlled experiment matrix
-scripts/profile_nsys.sh         Nsight Systems capture
-src/gpuforecast/data.py         time split, train-only scaling, window datasets
-src/gpuforecast/models.py       LSTM / GRU / TCN / Transformer
-src/gpuforecast/gpu.py          dedicated CUDA prefetch stream
-src/gpuforecast/train.py        AMP training + timing + memory + metrics
-cuda/fused_ln_gelu/             custom CUDA forward microbenchmark
-results/                        generated checkpoints, metrics, profiler output
-```
+| Architecture | C1 / C0 throughput | C4 / C0 throughput | C0 → C1 allocated-memory reduction |
+|---|---:|---:|---:|
+| LSTM | 0.827× | 0.205× | 47.3% |
+| GRU | 0.870× | 0.204× | 47.3% |
+| TCN | 0.792× | 0.276× | 42.5% |
+| Transformer | 0.887× | 0.312× | 53.9% |
 
-## 1. Local setup
+**Key engineering finding:** Mixed precision reduced allocated GPU memory substantially, but the tested configurations did **not** improve end-to-end training throughput. In particular, the C1 → C2 transition was associated with a major slowdown across all architectures. The integrity audit verified that only the intended pinned-memory and nonblocking-transfer flags changed at this transition. Because those two settings changed together, the independent cause of the slowdown **has not been established**.
 
-Create the environment and install PyTorch for your machine first. For an NVIDIA system, use the wheel matching the installed CUDA environment from the official PyTorch install selector. Then:
+See the [full performance analysis and limitations](reports/phase19_final_report.md) and [paired comparisons](analysis/phase18/tables/official_v1_paired_vs_c0.csv).
+
+## Experimental design
+
+**Data:** [ETTm1](https://github.com/zhouhaoyi/ETDataset), a 15-minute electricity-transformer series with seven numeric features (six load variables and oil temperature). The forecasting task predicts all seven variables.
+
+| Setting | Official study value |
+|---|---|
+| Input window | 96 time steps (24 hours) |
+| Forecast horizon | 24 time steps (6 hours) |
+| Split | Chronological 70% train / 10% validation / 20% test |
+| Preprocessing | Standardization fitted only on training data |
+| Batch size / DataLoader workers | 256 / 0 |
+| Seeds | 17, 42, 101 |
+| Training | 20 epochs, AdamW, learning rate 0.001, weight decay 0.0001, gradient clipping 1.0 |
+| Evaluation | MSE, MAE, RMSE on the original feature scale |
+
+The five execution configurations are **cumulative**:
+
+| Config | AMP | Pinned memory + nonblocking H2D | CUDA prefetch stream | `torch.compile` |
+|---|:---:|:---:|:---:|:---:|
+| **C0**: FP32 baseline | No | No | No | No |
+| **C1** | Yes | No | No | No |
+| **C2** | Yes | Yes | No | No |
+| **C3** | Yes | Yes | Yes | No |
+| **C4** | Yes | Yes | Yes | Yes |
+
+The 60 resolved YAML configurations and SHA-256 hashes are preserved in [`experiments/official_v1/`](experiments/official_v1/). The official runner checks the frozen plan and prevents incomplete attempts from being silently overwritten.
+
+## What is implemented
+
+- **Forecasting models:** LSTM, GRU, temporal convolutional network (TCN), and Transformer with a shared training/evaluation interface.
+- **Leakage-safe data processing:** chronological splitting, training-only standardization, and sliding input/forecast windows.
+- **GPU execution paths:** FP32, AMP, pinned memory, nonblocking copies, dedicated CUDA prefetch stream, and model compilation.
+- **Experiment controls:** fixed seeds, resolved configurations, manifest hashes, run-status tracking, checkpoints, and per-epoch telemetry.
+- **Container environment:** CUDA 12.8 development image and a recorded 40-package dependency environment for Linux AMD64.
+- **Custom CUDA work:** a forward-only fused LayerNorm + GELU operator, compiled and numerically validated on A40 **separately** from the official forecasting training graph. Its operator-level benchmarks are **not** end-to-end training speedup claims.
+
+## Getting started
+
+These commands install the project and run the basic validation checks. A local CPU or Apple Silicon system can run code correctness checks; reproducing the **official A40 systems benchmarks** requires compatible NVIDIA CUDA hardware.
 
 ```bash
-python -m venv .venv
+# Clone the repository
+git clone https://github.com/Padmore-Nana-Prempeh/gpu-multivariate-forecasting.git
+cd gpu-multivariate-forecasting
+
+# Create an environment (Python 3.12 recommended for matching the study)
+python3 -m venv .venv
 source .venv/bin/activate
-pip install -U pip
-pip install -e '.[dev]'
-./scripts/download_ett.sh
-pytest -q
+python -m pip install --upgrade pip
+python -m pip install -e '.[dev]'
+
+# Download ETTm1 and run the validation suite
+bash scripts/download_ett.sh
+python -m pytest -q
+python scripts/verify_matrix.py
+
+# Inspect all 60 frozen configurations; SAFE: dry run, no training
+python scripts/run_official_matrix.py
 ```
 
-CPU or Apple Silicon can run model correctness tests and small training runs. **CUDA optimization, Nsight, and the custom extension require an NVIDIA CUDA GPU.**
+**Single-model example:** `python -m gpuforecast.train --config configs/transformer_baseline.yaml`. This is a training run, not a quick validation command; it can be slow without a GPU.
 
-## 2. First baseline
+### Reproducing the official campaign
+
+The original experiments used an **NVIDIA A40**, a separate persistent results volume, the frozen manifest, and the validated CUDA/PyTorch environment. The official runner requires **both** an explicit `--execute` flag and `GPUFORECAST_OFFICIAL_RUNS=YES`, and refuses execution if an A40 is not present. A complete run incurs GPU costs.
 
 ```bash
-python -m gpuforecast.train \
-  --model lstm \
-  --seed 42 \
-  --amp off \
-  --pin-memory off \
-  --prefetch-stream off \
-  --compile off
+# Only on a compatible, deliberately provisioned A40 environment:
+GPUFORECAST_OFFICIAL_RUNS=YES python scripts/run_official_matrix.py --execute
 ```
 
-Then run the Transformer under the exact same configuration:
+To match the original environment more closely, see [`Dockerfile`](Dockerfile), [`requirements/gpu-resolved.lock`](requirements/gpu-resolved.lock), and [`scripts/verify_gpu_environment.py`](scripts/verify_gpu_environment.py). The official image digest and run provenance are captured in the archived experiment records. The GitHub Container Registry package may require access if it is still private.
+
+### Optional profiling and CUDA-operator experiments
+
+These tools are **separate from the frozen official results** and require an NVIDIA GPU plus the necessary profiling/compiler tools:
 
 ```bash
-python -m gpuforecast.train \
-  --model transformer \
-  --seed 42 \
-  --amp off \
-  --pin-memory off \
-  --prefetch-stream off \
-  --compile off
-```
+# Nsight Systems profiling (requires `nsys`)
+bash scripts/profile_nsys.sh
 
-## 3. GPU optimized run
-
-```bash
-python -m gpuforecast.train \
-  --model transformer \
-  --seed 42 \
-  --amp on \
-  --pin-memory on \
-  --prefetch-stream on \
-  --compile off
-```
-
-Each epoch records:
-- training loss
-- seconds / epoch
-- samples / second
-- CUDA peak allocated memory
-- validation RMSE / MAE / MSE
-
-The final JSON also records test metrics, PyTorch version, CUDA version, and run configuration in its filename.
-
-## 4. Run all 60 experiments
-
-```bash
-python scripts/run_matrix.py
-```
-
-Do this only after a short smoke test, because the full matrix is intentionally expensive.
-
-## 5. Nsight Systems
-
-On a Linux/Windows NVIDIA environment with `nsys` installed:
-
-```bash
-./scripts/profile_nsys.sh
-```
-
-Inspect:
-- blank GPU regions / starvation
-- H2D memcpy placement
-- copy/compute overlap across CUDA streams
-- synchronization calls
-- expensive kernels
-- CPU DataLoader gaps
-
-The purpose is to demonstrate *why* epoch time changes, not merely report a stopwatch number.
-
-## 6. Custom CUDA LayerNorm + GELU microbenchmark
-
-This is deliberately separated from the training path until numerical correctness and speed are demonstrated.
-
-Build:
-
-```bash
+# Forward-only fused LayerNorm + GELU microbenchmark
 cd cuda/fused_ln_gelu
 python setup.py build_ext --inplace
+python benchmark.py --rows 24576 --hidden 128 --dtype fp32
 ```
 
-Benchmark:
+The fused operator is **not** an autograd-enabled replacement for the training model. Its standalone benchmark results must not be presented as official training speedups.
+
+### Reproducing the analysis
+
+**Available directly in GitHub (no GPU required):**
+
+- [60-run summary](analysis/phase18/tables/official_v1_full_runs.csv)
+- [20 model/configuration summaries](analysis/phase18/tables/official_v1_model_config_summary.csv)
+- [48 paired C0 comparisons](analysis/phase18/tables/official_v1_paired_vs_c0.csv)
+- [1,200 epoch records](analysis/phase18/tables/official_v1_epoch_history.csv)
+- [Offline audit findings](analysis/phase18/phase19_integrity_audit.txt)
+- [Final report with claim-level qualifications](reports/phase19_final_report.md)
+
+The raw `result.json` files and `best.pt` checkpoints are **not** committed because of their size. For users who possess the verified experiment archive, extract its `results/official_v1` directory under `analysis/phase18/`, then run:
 
 ```bash
-python benchmark.py --rows 24576 --hidden 128 --dtype fp32
-python benchmark.py --rows 24576 --hidden 128 --dtype fp16
+python3 analysis/phase18/phase19_integrity_audit.py
+python3 analysis/phase18/phase19_full_analysis.py
 ```
 
-The script prints:
-- maximum absolute error vs `torch.nn.functional.layer_norm` + GELU
-- eager latency
-- fused latency
-- measured speedup
+These scripts operate on the archived experiment records; **the second command does not work from a clean clone alone** because the raw results are intentionally excluded. The published CSV tables are available to inspect and analyze without that archive.
 
-Only if the numerical error and speed are acceptable should the fused operator be wired into the forecasting Transformer. The current extension is a **forward microbenchmark**, not yet a custom-autograd training operator.
-
-## 7. Claims we will compute, not assume
-
-The final analysis script should derive these directly from JSON/benchmark output:
+## Repository guide
 
 ```text
-Transformer RMSE improvement vs strongest recurrent baseline = ... %
-AMP peak-memory reduction vs FP32                         = ... %
-AMP throughput improvement vs FP32                      = ... x
-optimized epoch-time speedup vs FP32                    = ... x
-fused LN+GELU microbenchmark speedup                     = ... x
-max absolute fused-kernel error                         = ...
+src/gpuforecast/               Models, data preparation, training, metrics, GPU prefetch
+configs/                       Baseline model and local experiment configurations
+experiments/official_v1/       Frozen 60-run manifest and per-run YAML configs
+scripts/                       Verification, data download, and official safe runner
+cuda/                          Custom CUDA extension experiments
+Dockerfile                     Linux AMD64 CUDA environment
+requirements/                  Resolved GPU software dependencies
+analysis/phase18/              Offline analysis scripts, summary tables, integrity audit
+reports/phase19_final_report.md  Completed study, results, caveats, claim ledger
 ```
 
-Those measured values become the final GitHub README table and résumé bullet.
+## Interpretation and next questions
 
-## Next implementation stages
+This is a **completed and audited experimental study**, not a claim that every CUDA optimization improved performance. It establishes:
 
-1. Smoke-test dataset and all four model shapes.
-2. Run one-seed FP32 baseline for every architecture.
-3. Validate AMP accuracy drift and memory/throughput.
-4. Validate pinned-memory + non-blocking transfer behavior.
-5. Profile copy/compute overlap with Nsight Systems.
-6. Tune the prefetch stream only if the timeline shows transfer stalls.
-7. Benchmark and validate the fused CUDA op.
-8. Add backward/custom autograd only if training-level fusion is justified.
-9. Aggregate all run JSON into publication-quality tables/plots.
-10. Add Docker/NVIDIA Container Toolkit, CI smoke tests, and a final reproducibility report.
+1. The Transformer had the best **observed mean accuracy** for this ETTm1 task and study design.
+2. AMP produced substantial **peak allocated-memory savings** across all architectures.
+3. The combined C2 host-to-device execution changes coincided with a large **throughput regression** that still needs isolated profiling to explain.
 
-## 8. Aggregate benchmark results
+The next engineering investigation, if undertaken, would profile host-side batch preparation, pinning, synchronization and transfer behavior independently, and inspect compiler traces. That work would be a **new diagnostic study**, not a retroactive change to the frozen 60 runs.
 
-After the experiment matrix finishes:
-
-```bash
-python scripts/summarize_results.py
-```
-
-This creates:
-- `results/summary.csv` — one row per run
-- `results/grouped_summary.csv` — mean/std benchmark table by model and system configuration
-- `results/system_speedups.csv` — per-seed throughput, epoch-time, memory, and RMSE changes relative to FP32
-
-This is the source of truth for the final README and résumé claims.
+**Acknowledgments:** Thanks to Dr. Fredrick Aviyor and Patrick Tabiri for their guidance and encouragement during the project journey.
